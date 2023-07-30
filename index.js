@@ -79,7 +79,7 @@ const constants = () => {
     _root.dt = 1;
     _root.particleMass = 1;
     _root.dotMass = 1;
-    _root.dotRadius = 20;
+    _root.dotRadius = 0;
     _root.savedColors = [];
     _root.particles = [];
     _root.grid = Array(_root.gridSize[1])

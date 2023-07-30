@@ -123,7 +123,7 @@ const calc = () => {
         _root.canvas.width,
         _root.canvas.height
     );
-    outerLoop: for (let i = 0; i < 1000000; i++) {
+    for (let i = 0; i < 1000000; i++) {
         if (!_root.particle) {
             if (!_root.particles.length) {
                 if (!_root.nextParticles.length) {
@@ -132,7 +132,7 @@ const calc = () => {
                 }
                 _root.particles = _root.nextParticles;
                 _root.nextParticles = [];
-                _root.maxSteps *= 2;
+                _root.maxSteps++;
             }
             _root.particle = _root.particles.pop();
         }
@@ -151,27 +151,34 @@ const calc = () => {
         p[1] = particle.p[1];
         addVecInPlace(particle.p, particle.v);
 
+        let [closestColor, closestDist] = [undefined, Number.MAX_VALUE];
+
         for (let d = 0; d < _root.dots.length; d++) {
             const dot = _root.dots[d];
 
             setSubVec(diff, dot.pos, p);
             const distSquared = lengthSquared(diff);
+            if (distSquared < closestDist) {
+                closestColor = dot.color;
+                closestDist = distSquared;
+            }
             if (distSquared <= _root.dotRadius ** 2) {
-                const k =
-                    4 * (particle.g[0] + _root.canvas.width * particle.g[1]);
-                for (let z = 0; z < 3; z++) {
-                    imageData.data[k + z] =
-                        dot.color[z] *
-                        Math.exp((-1 * Math.log2(particle.steps)) / 8);
-                }
-                imageData.data[k + 3] = 255;
                 _root.particle = undefined;
-                continue outerLoop;
+                break;
             }
             // const dist = Math.sqrt(distSquared);
             setMultVec(aVec, _root.dotMass / distSquared, diff);
             addVecInPlace(particle.v, aVec);
         }
+
+        const k = 4 * (particle.g[0] + _root.canvas.width * particle.g[1]);
+        for (let z = 0; z < 3; z++) {
+            imageData.data[k + z] =
+                closestColor[z] *
+                // Math.exp((-1 * Math.log2(particle.steps)) / 8);
+                1;
+        }
+        imageData.data[k + 3] = 255;
     }
 
     _root.ctx.putImageData(imageData, 0, 0);

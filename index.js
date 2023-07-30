@@ -1,25 +1,37 @@
+import WebGLShaderRenderer from "./webgl.js";
+
 const _root = {};
 
-window.onload = () => {
+window.onload = async () => {
     _root.canvas = document.getElementById("canvas");
-    _root.ctx = _root.canvas.getContext("2d");
 
     _root.canvas.width = window.innerWidth;
     _root.canvas.height = window.innerHeight;
     _root.screenSize = [_root.canvas.width, _root.canvas.height];
 
-    restart();
+    // restart();
+    let renderer = new WebGLShaderRenderer("canvas", _root.screenSize);
+    renderer.programInfo.uniforms = ["screenSize"];
+    await renderer.setShader("./vertex.glsl", "./fragment.glsl");
+
+    // let fps = document.getElementById("fps");
+    renderer.callback = (gl, shaderProgram) => {
+        gl.uniform2fv(shaderProgram.uniforms.screenSize, _root.screenSize);
+        // fps.innerHTML = `dt: ${Math.round(renderer.dt)}ms fps: ${Math.round(
+        //     1000 / renderer.dt
+        // )}`;
+    };
+    renderer.start();
 };
 
 const restart = () => {
     constants();
     init();
-    clearTimeout(_root.running);
 
     draw();
     const loop = () => {
         calc();
-        _root.running = setTimeout(loop, 0);
+        window.requestAnimationFrame(loop);
     };
     loop();
 };

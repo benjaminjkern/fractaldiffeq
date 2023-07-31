@@ -137,7 +137,7 @@ export default class WebGLShaderRenderer {
     }
 
     loop(ts) {
-        window.requestAnimationFrame((ts) => this.loop(ts));
+        // window.requestAnimationFrame((ts) => this.loop(ts));
         this.dt = ts - this.ms;
         this.ms = ts;
         this.gl.useProgram(this.shaderProgram.program);

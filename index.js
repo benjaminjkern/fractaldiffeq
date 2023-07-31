@@ -17,13 +17,13 @@ window.onload = async () => {
 
     // restart();
     let renderer = new WebGLShaderRenderer("canvas", _root.screenSize);
-    renderer.programInfo.uniforms = ["screenSize", "dots", "colors", "numDots"];
+    renderer.programInfo.uniforms = ["screenSize", "dots", "colors", "frames"];
     await renderer.setShader("./vertex.glsl", "./fragment.glsl");
 
-    console.log(_root.dots.map((dot) => dot.color)[0]);
-
+    _root.t = 0;
     // let fps = document.getElementById("fps");
     renderer.callback = (gl, shaderProgram) => {
+        _root.t++;
         gl.uniform2fv(shaderProgram.uniforms.screenSize, _root.screenSize);
         gl.uniform2fv(
             shaderProgram.uniforms.dots,
@@ -33,7 +33,7 @@ window.onload = async () => {
             shaderProgram.uniforms.colors,
             _root.dots.flatMap((dot) => dot.color)
         );
-        gl.uniform1f(shaderProgram.uniforms.screenSize, _root.numDots);
+        gl.uniform1i(shaderProgram.uniforms.frames, _root.t);
         // fps.innerHTML = `dt: ${Math.round(renderer.dt)}ms fps: ${Math.round(
         //     1000 / renderer.dt
         // )}`;

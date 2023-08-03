@@ -1,13 +1,144 @@
+<!DOCTYPE html>
 <html>
 
 <head>
-  <title>Wooooooooooooooo</title>
-  <!-- <meta name="viewport" content="width=device-width, initial-scale=1" /> -->
-  <script src="index.js" type="module"></script>
+    <title>Persistent Pixel State with WebGL</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
 </head>
 
-<body style="margin: 0">
-  <canvas id="canvas"></canvas>
+<body>
+    <canvas id="canvas" width="512" height="512"></canvas>
+    <script>
+        // Vertex shader code
+        const vertexShaderSource = `
+            void main() {
+                gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+            }
+        `;
+
+        // Fragment shader code
+        const fragmentShaderSource = `
+            precision mediump float;
+            uniform sampler2D prevState;
+
+            void main() {
+                vec2 texSize = vec2(32.0, 32.0);
+                vec2 pixelCoords = floor(gl_FragCoord.xy * texSize);
+                vec2 normalizedCoords = (pixelCoords + 0.5) / texSize;
+                
+                // Retrieve previous state from the texture
+                vec4 previousState = texture2D(prevState, normalizedCoords);
+
+                // Update the state (simple example: just increment the value)
+                previousState.r += 0.1;
+
+                // Write the updated state to the texture
+                gl_FragColor = newState;
+            }
+        `;
+
+        // Set up WebGL context
+        const canvas = document.getElementById('canvas');
+        const gl = canvas.getContext('webgl');
+
+        // Create shaders
+        const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        gl.shaderSource(vertexShader, vertexShaderSource);
+        gl.compileShader(vertexShader);
+
+        const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(fragmentShader, fragmentShaderSource);
+        gl.compileShader(fragmentShader);
+
+        // Create and link the shader program
+        const shaderProgram = gl.createProgram();
+        gl.attachShader(shaderProgram, vertexShader);
+        gl.attachShader(shaderProgram, fragmentShader);
+        gl.linkProgram(shaderProgram);
+        gl.useProgram(shaderProgram);
+
+
+
+
+
+        // Create and bind the position buffer
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(
+            gl.ARRAY_BUFFER,
+            new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]),
+            gl.STATIC_DRAW
+        );
+
+        // Create and bind the texture
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.RGBA,
+            32,
+            32,
+            0,
+            gl.RGBA,
+            gl.FLOAT,
+            null
+        );
+
+        // Set the texture filtering mode to nearest neighbor
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+
+        // Create a framebuffer
+        const framebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,
+            gl.COLOR_ATTACHMENT0,
+            gl.TEXTURE_2D,
+            texture,
+            0
+        );
+
+        // Bind the position buffer to the vertex shader attribute
+        const positionLocation = gl.getAttribLocation(shaderProgram, 'a_position');
+        gl.enableVertexAttribArray(positionLocation);
+        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+        // Set up the uniform variable for the previous state texture
+        const prevStateLocation = gl.getUniformLocation(shaderProgram, 'prevState');
+        gl.uniform1i(prevStateLocation, 0);
+
+        // Main render loop
+        function render() {
+            gl.viewport(0, 0, 32, 32);
+
+            // Bind the framebuffer to render into the texture
+            gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+
+            // Draw a single point to update the state
+            gl.drawArrays(gl.POINTS, 0, 1);
+
+            // Bind the default framebuffer to display the texture
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+            // Draw a full-screen quad to display the texture
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            // Request the next frame
+            requestAnimationFrame(render);
+        }
+
+        // Start the render loop
+        render();
+    </script>
 </body>
 
 </html>

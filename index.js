@@ -20,10 +20,12 @@ window.onload = async () => {
     renderer.programInfo.uniforms = ["screenSize", "dots", "colors", "frames"];
     await renderer.setShader("./vertex.glsl", "./fragment.glsl");
 
-    _root.t = 0;
+    _root.t = 1;
+    _root.dt = 1;
     // let fps = document.getElementById("fps");
     renderer.callback = (gl, shaderProgram) => {
-        _root.t++;
+        _root.t += _root.dt;
+        if (_root.t === 100 || _root.t === 1) _root.dt = -_root.dt;
         gl.uniform2fv(shaderProgram.uniforms.screenSize, _root.screenSize);
         gl.uniform2fv(
             shaderProgram.uniforms.dots,

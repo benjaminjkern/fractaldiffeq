@@ -20,7 +20,7 @@ void main() {
     float closestDist;
     float distSquared;
 
-    for (int i = 0; i < 2000; i++) {
+    for (int i = 0; i < 500; i++) {
         pos.x = position.x;
         pos.y = position.y;
         position = position + velocity;

@@ -69,7 +69,7 @@ window.onload = async () => {
 
 window.onresize = () => {
     clearTimeout(_root.restartTimeout);
-    _root.restartTimeout = setTimeout(restart, 1);
+    _root.restartTimeout = setTimeout(restart, 500);
 };
 
 const randomColor = () => {

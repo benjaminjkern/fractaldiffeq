@@ -2,25 +2,32 @@ import WebGLShaderRenderer from "./webgl.js";
 
 const _root = {
     numDots: 10,
+    done: true,
 };
 
-window.onload = async () => {
-    _root.canvas = document.getElementById("canvas");
+const resetScreenSize = () => {
+    if (_root.canvas) _root.canvas.id = "oldcanvas";
 
-    _root.canvas.width = window.innerWidth;
-    _root.canvas.height = window.innerHeight;
-    _root.screenSize = [_root.canvas.width, _root.canvas.height];
+    const newCanvas = document.createElement("canvas");
+    newCanvas.id = "canvas";
+    newCanvas.style.position = "absolute";
+    newCanvas.style.left = "0px";
+    newCanvas.style.top = "0px";
+    newCanvas.width = window.innerWidth;
+    newCanvas.height = window.innerHeight;
+    _root.screenSize = [newCanvas.width, newCanvas.height];
+    document.body.appendChild(newCanvas);
+};
 
-    _root.dots = Array(_root.numDots)
-        .fill()
-        .map(() => randomDot());
+const restart = async () => {
+    if (!_root.done) return;
+    _root.done = false;
 
-    // restart();
-    let renderer = new WebGLShaderRenderer("canvas", _root.screenSize);
+    resetScreenSize();
+
+    const renderer = new WebGLShaderRenderer("canvas", _root.screenSize);
     renderer.programInfo.uniforms = ["screenSize", "dots", "colors", "numDots"];
     await renderer.setShader("./vertex.glsl", "./fragment.glsl");
-
-    console.log(_root.dots.map((dot) => dot.color)[0]);
 
     // let fps = document.getElementById("fps");
     renderer.callback = (gl, shaderProgram) => {
@@ -33,12 +40,33 @@ window.onload = async () => {
             shaderProgram.uniforms.colors,
             _root.dots.flatMap((dot) => dot.color)
         );
-        gl.uniform1f(shaderProgram.uniforms.screenSize, _root.numDots);
+        gl.uniform1f(shaderProgram.uniforms.numDots, _root.numDots);
         // fps.innerHTML = `dt: ${Math.round(renderer.dt)}ms fps: ${Math.round(
         //     1000 / renderer.dt
         // )}`;
     };
     renderer.start();
+
+    if (_root.canvas) _root.canvas.remove();
+    _root.canvas = document.getElementById("canvas");
+
+    _root.done = true;
+};
+
+window.onload = async () => {
+    resetScreenSize();
+    _root.canvas = document.getElementById("canvas");
+
+    _root.dots = Array(_root.numDots)
+        .fill()
+        .map(() => randomDot());
+
+    await restart();
+};
+
+window.onresize = () => {
+    clearTimeout(_root.restartTimeout);
+    _root.restartTimeout = setTimeout(restart, 500);
 };
 
 const randomColor = () => {
@@ -52,15 +80,6 @@ const randomDot = () => ({
     color: [...randomColor(), 1],
     pos: elemMultVec(_root.screenSize, randVec(2)),
 });
-
-/****
- * MATH
- */
-
-/**
- *
- * COMPLEX
- */
 
 const elemMultVec = (a, ...rest) => {
     if (rest.length === 0) return a;

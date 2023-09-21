@@ -1,8 +1,10 @@
 precision highp float;
 
+const int NUM_DOTS = 100;
+
 uniform vec2 screenSize;
-uniform vec2 dots[10];
-uniform vec4 colors[10];
+uniform vec2 dots[NUM_DOTS];
+uniform vec4 colors[NUM_DOTS];
 uniform int numDots;
 
 const float dotMass = 1.;
@@ -23,7 +25,7 @@ void main() {
         position = position + velocity;
         closestDist = 1000000000.;
 
-        for (int d = 0; d < 10; d++) {
+        for (int d = 0; d < NUM_DOTS; d++) {
             diff = dots[d] - pos;
             distSquared = dot(diff, diff);
 

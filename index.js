@@ -1,7 +1,7 @@
 import WebGLShaderRenderer from "./webgl.js";
 
 const _root = {
-    numDots: 10,
+    numDots: 100,
     done: true,
 };
 
@@ -34,7 +34,9 @@ const restart = async () => {
         gl.uniform2fv(shaderProgram.uniforms.screenSize, _root.screenSize);
         gl.uniform2fv(
             shaderProgram.uniforms.dots,
-            _root.dots.flatMap((dot) => dot.pos)
+            _root.dots.flatMap((dot) =>
+                [0, 1].map((i) => dot.pos[i] + _root.screenSize[i] / 2)
+            )
         );
         gl.uniform4fv(
             shaderProgram.uniforms.colors,
@@ -71,14 +73,15 @@ window.onresize = () => {
 
 const randomColor = () => {
     // return multVec(256, hsv2rgb(Math.random() * 360, 1, 1));
-    return Array(3)
-        .fill()
-        .map(() => Math.random());
+    return randVec(3);
 };
 
 const randomDot = () => ({
     color: [...randomColor(), 1],
-    pos: elemMultVec(_root.screenSize, randVec(2)),
+    pos: elemMultVec(
+        _root.screenSize,
+        randVec(2).map((x) => x * 4 - 2)
+    ),
 });
 
 const elemMultVec = (a, ...rest) => {

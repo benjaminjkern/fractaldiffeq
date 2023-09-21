@@ -1,7 +1,7 @@
 import WebGLShaderRenderer from "./webgl.js";
 
 const _root = {
-    numDots: 20,
+    numDots: 10,
     done: true,
 };
 
@@ -17,13 +17,15 @@ const resetScreenSize = () => {
     newCanvas.height = window.innerHeight;
     _root.screenSize = [newCanvas.width, newCanvas.height];
     document.body.appendChild(newCanvas);
+
+    return newCanvas;
 };
 
 const restart = async () => {
     if (!_root.done) return;
     _root.done = false;
 
-    resetScreenSize();
+    const newCanvas = resetScreenSize();
 
     const renderer = new WebGLShaderRenderer("canvas", _root.screenSize);
     renderer.programInfo.uniforms = ["screenSize", "dots", "colors", "numDots"];
@@ -35,7 +37,7 @@ const restart = async () => {
         gl.uniform2fv(
             shaderProgram.uniforms.dots,
             _root.dots.flatMap((dot) =>
-                [0, 1].map((i) => dot.pos[i] + _root.screenSize[i] / 2)
+                dot.pos.map((x, i) => x + _root.screenSize[i] / 2)
             )
         );
         gl.uniform4fv(
@@ -50,14 +52,13 @@ const restart = async () => {
     renderer.start();
 
     if (_root.canvas) _root.canvas.remove();
-    _root.canvas = document.getElementById("canvas");
+    _root.canvas = newCanvas;
 
     _root.done = true;
 };
 
 window.onload = async () => {
-    resetScreenSize();
-    _root.canvas = document.getElementById("canvas");
+    _root.canvas = resetScreenSize();
 
     _root.dots = Array(_root.numDots)
         .fill()
@@ -68,7 +69,7 @@ window.onload = async () => {
 
 window.onresize = () => {
     clearTimeout(_root.restartTimeout);
-    _root.restartTimeout = setTimeout(restart, 500);
+    _root.restartTimeout = setTimeout(restart, 1);
 };
 
 const randomColor = () => {

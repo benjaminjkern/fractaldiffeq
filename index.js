@@ -1,7 +1,7 @@
 import WebGLShaderRenderer from "./webgl.js";
 
 const _root = {
-    numDots: 10,
+    numDots: 20,
     done: true,
 };
 

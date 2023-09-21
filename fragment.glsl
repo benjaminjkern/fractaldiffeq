@@ -1,6 +1,6 @@
 precision highp float;
 
-const int NUM_DOTS = 10;
+const int NUM_DOTS = 20;
 
 uniform vec2 screenSize;
 uniform vec2 dots[NUM_DOTS];

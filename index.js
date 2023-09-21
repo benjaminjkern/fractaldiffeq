@@ -1,7 +1,7 @@
 import WebGLShaderRenderer from "./webgl.js";
 
 const _root = {
-    numDots: 100,
+    numDots: 20,
     done: true,
 };
 
@@ -80,7 +80,7 @@ const randomDot = () => ({
     color: [...randomColor(), 1],
     pos: elemMultVec(
         _root.screenSize,
-        randVec(2).map((x) => x * 4 - 2)
+        randVec(2).map((x) => x * 2 - 1)
     ),
 });
 

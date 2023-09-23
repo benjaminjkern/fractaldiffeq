@@ -30,6 +30,17 @@ window.onload = async () => {
 
     // let fps = document.getElementById("fps");
     renderer.callback = (gl, shaderProgram) => {
+        _root.dots.forEach((dot) => {
+            dot.color.forEach((c, i) => {
+                dot.color[i] = Math.max(0, Math.min(1, c + dot.dc[i]));
+            });
+
+            dot.pos.forEach((p, i) => {
+                if (p + dot.v[i] < 0 || p + dot.v[i] > _root.screenSize[i])
+                    dot.v[i] = -dot.v[i];
+                dot.pos[i] = p + dot.v[i];
+            });
+        });
         t++;
         gl.uniform2fv(shaderProgram.uniforms.screenSize, _root.screenSize);
         gl.uniform2fv(
@@ -59,6 +70,8 @@ const randomColor = () => {
 const randomDot = () => ({
     color: [...randomColor(), 1],
     pos: elemMultVec(_root.screenSize, randVec(2)),
+    v: randVec(2).map((x) => 2 * x - 1),
+    dc: [0, 0, 0, 0],
 });
 
 /****

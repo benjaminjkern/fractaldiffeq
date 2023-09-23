@@ -7,7 +7,7 @@ uniform int numDots;
 uniform float t;
 
 const float dotMass = 1.;
-const float dotRadius = 20.;
+const float dotRadius = 0.;
 
 void main() {
     vec2 position = gl_FragCoord.xy; // vec2 of current pixel
@@ -20,7 +20,7 @@ void main() {
     float closestDist;
     float distSquared;
 
-    for (int i = 0; i < 500; i++) {
+    for (int i = 0; i < 200; i++) {
         pos.x = position.x;
         pos.y = position.y;
         position = position + velocity;

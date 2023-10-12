@@ -67,6 +67,8 @@ window.onload = async () => {
     await restart();
 };
 
+window.onclick = window.onload;
+
 window.onresize = () => {
     clearTimeout(_root.restartTimeout);
     _root.restartTimeout = setTimeout(restart, 500);

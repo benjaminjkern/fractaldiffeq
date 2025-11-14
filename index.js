@@ -1,7 +1,10 @@
 import WebGLShaderRenderer from "./webgl.js";
 
 const _root = {
-    numDots: 10,
+    numDots: 100,
+    maximum: 3,
+    minimum: 2.95,
+    radiusScale: 1,
 };
 
 window.onload = async () => {
@@ -22,11 +25,18 @@ window.onload = async () => {
         "dots",
         "colors",
         "numDots",
-        "t",
+        "radii",
+        "power",
+        "backgroundColor",
+        "maximum",
+        "minimum",
     ];
     await renderer.setShader("./vertex.glsl", "./fragment.glsl");
-
-    let t = 0;
+    const controls = [
+        attachController("minimum", 5),
+        attachController("maximum", 10),
+        attachController("radiusScale", 5),
+    ];
 
     // let fps = document.getElementById("fps");
     renderer.callback = (gl, shaderProgram) => {
@@ -36,12 +46,15 @@ window.onload = async () => {
             });
 
             dot.pos.forEach((p, i) => {
-                if (p + dot.v[i] < 0 || p + dot.v[i] > _root.screenSize[i])
+                if (
+                    p + dot.v[i] - dot.radius - _root.maximum < 0 ||
+                    p + dot.v[i] + dot.radius + _root.maximum >
+                        _root.screenSize[i]
+                )
                     dot.v[i] = -dot.v[i];
                 dot.pos[i] = p + dot.v[i];
             });
         });
-        t++;
         gl.uniform2fv(shaderProgram.uniforms.screenSize, _root.screenSize);
         gl.uniform2fv(
             shaderProgram.uniforms.dots,
@@ -52,12 +65,33 @@ window.onload = async () => {
             _root.dots.flatMap((dot) => dot.color)
         );
         gl.uniform1f(shaderProgram.uniforms.screenSize, _root.numDots);
-        gl.uniform1f(shaderProgram.uniforms.t, t);
+        gl.uniform1fv(
+            shaderProgram.uniforms.radii,
+            _root.dots.flatMap((dot) => dot.radius * _root.radiusScale)
+        );
+        gl.uniform1f(shaderProgram.uniforms.power, 5);
+        gl.uniform4f(shaderProgram.uniforms.backgroundColor, 0, 0, 0, 1);
+        gl.uniform1f(shaderProgram.uniforms.maximum, _root.maximum);
+        gl.uniform1f(shaderProgram.uniforms.minimum, _root.minimum);
         // fps.innerHTML = `dt: ${Math.round(renderer.dt)}ms fps: ${Math.round(
         //     1000 / renderer.dt
         // )}`;
     };
     renderer.start();
+};
+
+const attachController = (name, max) => {
+    const controls = document.getElementsByClassName("controls")[0];
+    const input = document.createElement("input");
+    input.type = "range";
+    input.min = 0;
+    input.max = max;
+    input.step = 0.01;
+    input.value = _root[name];
+    input.oninput = (event) => (_root[name] = Number(event.target.value));
+    input.onchange = (event) => (_root[name] = Number(event.target.value));
+    controls.appendChild(input);
+    return () => (input.value = _root[name]);
 };
 
 const randomColor = () => {
@@ -67,12 +101,25 @@ const randomColor = () => {
         .map(() => Math.random());
 };
 
-const randomDot = () => ({
-    color: [...randomColor(), 1],
-    pos: elemMultVec(_root.screenSize, randVec(2)),
-    v: randVec(2).map((x) => 2 * x - 1),
-    dc: [0, 0, 0, 0],
-});
+const randomDot = () => {
+    const radius = Math.random() * 10 + 10;
+    return {
+        color: [...randomColor(), 1],
+        pos: addVec(
+            elemMultVec(
+                addVec(_root.screenSize, [
+                    -2 * _root.maximum - 2 * radius,
+                    -2 * _root.maximum - 2 * radius,
+                ]),
+                randVec(2)
+            ),
+            [_root.maximum + radius, _root.maximum + radius]
+        ),
+        v: randVec(2).map((x) => (2 * x - 1) * 3),
+        dc: [0, 0, 0, 0],
+        radius,
+    };
+};
 
 /****
  * MATH

@@ -1,47 +1,48 @@
 precision highp float;
 
-uniform vec2 screenSize;
-uniform vec2 dots[100];
-uniform vec4 colors[100];
-uniform int numDots;
-uniform float radii[100];
-uniform float power;
-uniform vec4 backgroundColor;
-uniform float maximum;
-uniform float minimum;
+const int NUM_SPHERES = 100;
 
+vec3 camPos = vec3(1., 0., 0.);
+vec3 camZ = vec3(-1., 0., 0.);
+
+uniform vec2 screenSize;
+uniform vec3 spheres[NUM_SPHERES];
+uniform float radii[NUM_SPHERES];
+uniform vec3 colors[NUM_SPHERES];
 
 void main() {
-    vec2 position = gl_FragCoord.xy; // vec2 of current pixel
+    vec2 screenPos = gl_FragCoord.xy;
 
-    vec2 diff;
-    float distToSurface;
-    float dist;
-    float distSquared;
+    vec3 _camX = cross(camZ, vec3(0., 0., 1.));
+    vec3 camX = _camX / sqrt(dot(_camX, _camX));
+    vec3 camY = cross(camX, camZ);
 
-    vec4 currentColor = vec4(0,0,0,0);
-    float sum = 0.;
-    float colorSum = 0.;
-    float weight;
+    float overallSize = min(screenSize[0], screenSize[1]);
 
-    for (int d = 0; d < 100; d++) {
-        diff = dots[d] - position;
-        distSquared = dot(diff, diff);
-        dist = sqrt(distSquared);
-        sum += exp(-distSquared / radii[d] / radii[d]);
+    vec2 adjustedScreenPos = (screenPos - screenSize / 2.) / overallSize;
 
-        // weight = pow(1. / dist, power);
+    vec3 ray = adjustedScreenPos[0] * camX + adjustedScreenPos[1] * camY + camZ;
 
-        // currentColor *= colorSum;
-        // currentColor += colors[d] * weight;
-        // colorSum += weight;
-        // currentColor /= colorSum;
+    float dist = 1e20;
+    vec3 color = vec3(0., 0., 0.);
+
+    for (int s = 0; s < NUM_SPHERES; s++) {
+        vec3 diff = camPos - spheres[s];
+        float a = dot(ray, ray);
+        float b = dot(ray, diff);
+        float c = a * dot(diff, diff) - radii[s] * radii[s];
+        float disc = b * b - 4. * a * c;
+        if (disc < 0.) continue;
+        float sqdisc = sqrt(disc);
+        float sqa = sqrt(a);
+        float tm = -b - sqdisc;
+        float tp = -b + sqdisc;
+        float t = (tm < 0. ? tp : tm) / sqa;
+        if (t < dist) {
+            dist = t;
+            color = colors[s];
+        }
     }
-    if (sum > maximum) {
-        gl_FragColor = backgroundColor;
-    } else if (sum <= maximum && sum >= minimum) {
-        gl_FragColor = colors[0] * (sum - minimum) / (maximum - minimum);
-    } else {
-        gl_FragColor = backgroundColor;
-    }
+
+    gl_FragColor = vec4(color, 1.0);
 }

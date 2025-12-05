@@ -17,6 +17,7 @@ void main() {
     vec2 diff;
     float distToSurface;
     float dist;
+    float distSquared;
 
     vec4 currentColor = vec4(0,0,0,0);
     float sum = 0.;
@@ -25,22 +26,21 @@ void main() {
 
     for (int d = 0; d < 100; d++) {
         diff = dots[d] - position;
-        dist = sqrt(dot(diff, diff));
-        distToSurface = dist - radii[d];
-        sum += distToSurface > 0. ? 1. / distToSurface : 100.;
+        distSquared = dot(diff, diff);
+        dist = sqrt(distSquared);
+        sum += exp(-distSquared / radii[d] / radii[d]);
 
-        weight = pow(1. / dist, power);
+        // weight = pow(1. / dist, power);
 
-        currentColor *= colorSum;
-        currentColor += colors[d] * weight;
-        colorSum += weight;
-        currentColor /= colorSum;
+        // currentColor *= colorSum;
+        // currentColor += colors[d] * weight;
+        // colorSum += weight;
+        // currentColor /= colorSum;
     }
-    float inverseSum = 1. / sum;
-    if (inverseSum > maximum) {
+    if (sum > maximum) {
         gl_FragColor = backgroundColor;
-    } else if (inverseSum <= maximum && inverseSum >= minimum) {
-        gl_FragColor = currentColor;
+    } else if (sum <= maximum && sum >= minimum) {
+        gl_FragColor = colors[0] * (sum - minimum) / (maximum - minimum);
     } else {
         gl_FragColor = backgroundColor;
     }

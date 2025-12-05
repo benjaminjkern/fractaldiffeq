@@ -2,8 +2,8 @@ import WebGLShaderRenderer from "./webgl.js";
 
 const _root = {
     numDots: 100,
-    maximum: 3,
-    minimum: 2.95,
+    maximum: 1,
+    minimum: 0,
     radiusScale: 1,
 };
 
@@ -33,9 +33,9 @@ window.onload = async () => {
     ];
     await renderer.setShader("./vertex.glsl", "./fragment.glsl");
     const controls = [
-        attachController("minimum", 5),
-        attachController("maximum", 10),
-        attachController("radiusScale", 5),
+        attachController("minimum", 0, 1),
+        attachController("maximum", 0, 1),
+        attachController("radiusScale", 0, 5),
     ];
 
     // let fps = document.getElementById("fps");
@@ -80,13 +80,13 @@ window.onload = async () => {
     renderer.start();
 };
 
-const attachController = (name, max) => {
+const attachController = (name, min, max) => {
     const controls = document.getElementsByClassName("controls")[0];
     const input = document.createElement("input");
     input.type = "range";
-    input.min = 0;
+    input.min = min;
     input.max = max;
-    input.step = 0.01;
+    input.step = 0.000000001;
     input.value = _root[name];
     input.oninput = (event) => (_root[name] = Number(event.target.value));
     input.onchange = (event) => (_root[name] = Number(event.target.value));

@@ -58,17 +58,20 @@ const sendUniforms = (gl, shaderProgram) => {
 
 const init = () => {
     _root.spheres = Array(100).fill().map(randomSphere);
-    _root.camPos = [1, 0, 0];
-    _root.camZ = [-1, 0, 0];
+    _root.camPos = [1, 0, 1];
+    _root.camZ = normalizeVec([-1, 0, 0]);
 };
 
 const update = () => {
     for (const sphere of _root.spheres) {
-        sphere.v = addVec(sphere.v, [0, 0, -0.1]);
+        sphere.v = addVec(sphere.v, [0, 0, -0.01]);
         sphere.pos = addVec(sphere.pos, sphere.v);
         if (sphere.pos[2] - sphere.radius <= 0) {
-            sphere.pos[2] = sphere.radius;
-            sphere.v[2] = -sphere.v[2];
+            sphere.pos[2] = Math.min(
+                sphere.radius,
+                sphere.radius - sphere.pos[2]
+            );
+            sphere.v[2] = Math.abs(sphere.v[2]);
         }
     }
     const camX = normalizeVec(crossVec(_root.camZ, [0, 0, 1]));

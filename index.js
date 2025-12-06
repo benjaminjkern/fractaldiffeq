@@ -73,8 +73,6 @@ const update = () => {
             _root.camPos,
             constMultVec(-_root.speed, _root.camZ)
         );
-    // vec3 _camX = cross(camZ, vec3(0., 0., 1.));
-    // vec3 camX = _camX / sqrt(dot(_camX, _camX));
     const camX = crossVec(_root.camZ, [0, 0, 1]);
     if (_root.keysdown.a)
         _root.camPos = addVec(_root.camPos, constMultVec(-_root.speed, camX));
@@ -87,8 +85,6 @@ function updatePosition(event) {
     const movementY =
         event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
-    console.log(movementX, movementY);
-
     const camX = crossVec(_root.camZ, [0, 0, 1]);
     const camY = crossVec(camX, _root.camZ);
     _root.camZ = addVec(
@@ -100,8 +96,6 @@ function updatePosition(event) {
         1 / Math.sqrt(dotVec(_root.camZ, _root.camZ)),
         _root.camZ
     );
-
-    console.log(_root.camZ);
 }
 
 function lockChangeAlert() {

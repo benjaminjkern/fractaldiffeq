@@ -59,7 +59,7 @@ const sendUniforms = (gl, shaderProgram) => {
 const init = () => {
     _root.spheres = Array(100).fill().map(randomSphere);
     _root.spheres;
-    _root.camPos = [10, 0, 10];
+    _root.camPos = [20, 0, 20];
     _root.camZ = normalizeVec([-1, 0, -0.5]);
 };
 
@@ -71,7 +71,10 @@ const checkAllSpheresCollisions = () => {
 
     const potentialCollisions = [];
 
-    while (true) {
+    let loops = 500;
+
+    while (loops > 0) {
+        loops--;
         for (const sphere of _root.spheres) {
             if (sphere.checked) continue;
 
@@ -107,7 +110,6 @@ const checkAllSpheresCollisions = () => {
                 const disc = b * b - 4 * a * c;
 
                 if (disc < 0) continue;
-
                 const t = (-b - Math.sqrt(disc)) / 2 / a;
                 if (t < 0 || t >= 1) continue;
 
@@ -241,7 +243,7 @@ const randomSphere = () => {
             Array(3)
                 .fill()
                 .map(() => (Math.random() * 2 - 1) * 10),
-            [0, 0, 10]
+            [0, 0, 15]
         ),
         v: Array(3)
             .fill()

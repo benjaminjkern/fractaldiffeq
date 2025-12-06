@@ -10,7 +10,7 @@ uniform vec3 camPos;
 uniform vec3 camZ;
 
 
-void getColor(in vec3 pos, in vec3 dir, out vec3 color, out vec3 newPos, out vec3 newDir, out bool hitVoid, out float match) {
+void getColor(in vec3 pos, in vec3 dir, in int bounceNum, out vec3 color, out vec3 newPos, out vec3 newDir, out bool hitVoid, out float match) {
     float dist = 1e20;
     vec3 hitColor = vec3(1., 1., 1.);
 
@@ -30,6 +30,7 @@ void getColor(in vec3 pos, in vec3 dir, out vec3 color, out vec3 newPos, out vec
     }
 
     for (int s = 0; s < NUM_SPHERES; s++) {
+        if (s == 0 && bounceNum == 0) continue;
         vec3 diff = pos - spheres[s];
         float b =  dot(dir, diff);
         float c = dot(diff, diff) - radii[s] * radii[s];
@@ -77,7 +78,7 @@ void main() {
 
     bool hitVoid = false;
     for (int runs = 0; runs < 5; runs++) {
-        getColor(pos, dir, newColor, pos, dir, hitVoid, match);
+        getColor(pos, dir, runs, newColor, pos, dir, hitVoid, match);
         color = (color * sum + newColor) / float(sum + match);
         if (hitVoid) break;
         sum += match;

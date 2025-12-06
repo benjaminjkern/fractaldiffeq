@@ -1,6 +1,13 @@
 import WebGLShaderRenderer from "./webgl.js";
 
 const _root = {
+    planes: [
+        { pos: [0, 0, 0], norm: [0, 0, 1] },
+        { pos: [10, 0, 0], norm: [1, 0, 0] },
+        { pos: [-10, 0, 0], norm: [1, 0, 0] },
+        { pos: [0, 10, 0], norm: [0, 1, 0] },
+        { pos: [0, -10, 0], norm: [0, 1, 0] },
+    ],
     keysdown: {},
     speed: 0.1,
 };
@@ -61,6 +68,9 @@ const init = () => {
     _root.spheres;
     _root.camPos = [20, 0, 20];
     _root.camZ = normalizeVec([-1, 0, -0.5]);
+
+    _root.spheres[0].radius = 1;
+    _root.spheres[0].pos = _root.camPos;
 };
 
 const checkAllSpheresCollisions = () => {
@@ -79,16 +89,21 @@ const checkAllSpheresCollisions = () => {
         for (const sphere of _root.spheres) {
             if (sphere.checked) continue;
 
-            // Check plane
-            const t =
-                (sphere.radius - sphere.pos[2] - sphere.t * sphere.v[2]) /
-                sphere.v[2];
-            if (t >= 0 && t < 1) {
-                potentialCollisions.push({
-                    t,
-                    spheres: [sphere],
-                    impulses: [[0, 0, -2 * sphere.v[2] * sphere.mass]],
-                });
+            const speed = Math.sqrt(dotVec(sphere.v, sphere.v));
+
+            for (const plane of _root.planes) {
+                const planeDiff = subVec(plane.pos, sphere.pos);
+                const vNorm = dotVec(plane.norm, sphere.v);
+                const t = (dotVec(planeDiff, plane.norm) / vNorm) * speed;
+                if (t >= 0 && t < 1) {
+                    potentialCollisions.push({
+                        t,
+                        spheres: [sphere],
+                        impulses: [
+                            constMultVec(-2 * sphere.mass * vNorm, plane.norm),
+                        ],
+                    });
+                }
             }
         }
         for (let s = 0; s < _root.spheres.length; s++) {
@@ -183,30 +198,36 @@ const update = () => {
     const camX = normalizeVec(crossVec(_root.camZ, [0, 0, 1]));
     const camLateral = crossVec([0, 0, 1], camX);
     if (_root.keysdown.w)
-        _root.camPos = addVec(
-            _root.camPos,
+        _root.spheres[0].pos = addVec(
+            _root.spheres[0].pos,
             constMultVec(_root.speed, camLateral)
         );
     if (_root.keysdown.s)
-        _root.camPos = addVec(
-            _root.camPos,
+        _root.spheres[0].pos = addVec(
+            _root.spheres[0].pos,
             constMultVec(-_root.speed, camLateral)
         );
     if (_root.keysdown.a)
-        _root.camPos = addVec(_root.camPos, constMultVec(-_root.speed, camX));
+        _root.spheres[0].pos = addVec(
+            _root.spheres[0].pos,
+            constMultVec(-_root.speed, camX)
+        );
     if (_root.keysdown.d)
-        _root.camPos = addVec(_root.camPos, constMultVec(_root.speed, camX));
+        _root.spheres[0].pos = addVec(
+            _root.spheres[0].pos,
+            constMultVec(_root.speed, camX)
+        );
 
-    if (_root.keysdown[" "])
-        _root.camPos = addVec(
-            _root.camPos,
-            constMultVec(_root.speed, [0, 0, 1])
-        );
-    if (_root.keysdown.shift)
-        _root.camPos = addVec(
-            _root.camPos,
-            constMultVec(-_root.speed, [0, 0, 1])
-        );
+    // if (_root.keysdown[" "])
+    //     _root.spheres[0].pos = addVec(
+    //         _root.spheres[0].pos,
+    //         constMultVec(_root.speed, [0, 0, 1])
+    //     );
+    // if (_root.keysdown.shift)
+    //     _root.spheres[0].pos = addVec(
+    //         _root.spheres[0].pos,
+    //         constMultVec(-_root.speed, [0, 0, 1])
+    //     );
     if (_root.keysdown.e) {
         let furthestSphere = [null, null];
         for (const sphere of _root.spheres) {
@@ -236,6 +257,7 @@ const update = () => {
             furthestSphere[1].v = constMultVec(0.1, _root.camZ);
         }
     }
+    _root.camPos = _root.spheres[0].pos;
 };
 const updatePosition = (event) => {
     const movementX =

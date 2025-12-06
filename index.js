@@ -1,6 +1,9 @@
 import WebGLShaderRenderer from "./webgl.js";
 
-const _root = {};
+const _root = {
+    keysdown: {},
+    speed: 0.01,
+};
 
 window.onload = async () => {
     const canvas = document.getElementById("canvas");
@@ -56,7 +59,18 @@ const init = () => {
     _root.camZ = [-1, 0, 0];
 };
 
-const update = () => {};
+const update = () => {
+    if (_root.keysdown.w)
+        _root.camPos = addVec(
+            _root.camPos,
+            constMultVec(_root.speed, _root.camZ)
+        );
+    if (_root.keysdown.s)
+        _root.camPos = addVec(
+            _root.camPos,
+            constMultVec(-1 * _root.speed, _root.camZ)
+        );
+};
 
 const randomSphere = () => ({
     pos: Array(3)
@@ -65,6 +79,13 @@ const randomSphere = () => ({
     radius: Math.random() + 1,
     color: randomColor(),
 });
+
+window.onkeydown = (e) => {
+    if (["a", "s", "d", "w"].includes(e.key)) _root.keysdown[e.key] = true;
+};
+window.onkeyup = (e) => {
+    if (["a", "s", "d", "w"].includes(e.key)) _root.keysdown[e.key] = false;
+};
 
 /****
  * MATH
@@ -80,6 +101,10 @@ const randomColor = () => {
     return Array(3)
         .fill()
         .map(() => Math.random());
+};
+
+const constMultVec = (a, v) => {
+    return v.map((x, i) => x * a);
 };
 
 const elemMultVec = (a, ...rest) => {

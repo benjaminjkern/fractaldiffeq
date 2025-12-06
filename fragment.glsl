@@ -2,13 +2,12 @@ precision highp float;
 
 const int NUM_SPHERES = 100;
 
-vec3 camPos = vec3(1., 0., 0.);
-vec3 camZ = vec3(-1., 0., 0.);
-
 uniform vec2 screenSize;
 uniform vec3 spheres[NUM_SPHERES];
 uniform float radii[NUM_SPHERES];
 uniform vec3 colors[NUM_SPHERES];
+uniform vec3 camPos;
+uniform vec3 camZ;
 
 void main() {
     vec2 screenPos = gl_FragCoord.xy;

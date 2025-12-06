@@ -46,7 +46,8 @@ void getColor(in vec3 pos, in vec3 dir, out vec3 color, out vec3 newPos, out vec
 void main() {
     vec2 screenPos = gl_FragCoord.xy;
 
-    vec3 camX = cross(camZ, vec3(0., 0., 1.));
+    vec3 _camX = cross(camZ, vec3(0., 0., 1.));
+    vec3 camX = _camX / sqrt(dot(_camX, _camX));
     vec3 camY = cross(camX, camZ);
 
     float overallSize = min(screenSize[0], screenSize[1]);
@@ -60,7 +61,7 @@ void main() {
     int runs = 0;
 
     bool hitVoid = false;
-    for (int runs = 0; runs < 10; runs++) {
+    for (int runs = 0; runs < 20; runs++) {
         getColor(pos, dir, newColor, pos, dir, hitVoid);
         color = (color * float(runs) + newColor) / float(runs + 1);
         if (hitVoid) break;

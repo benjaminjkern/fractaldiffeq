@@ -73,7 +73,7 @@ const update = () => {
             _root.camPos,
             constMultVec(-_root.speed, _root.camZ)
         );
-    const camX = crossVec(_root.camZ, [0, 0, 1]);
+    const camX = normalizeVec(crossVec(_root.camZ, [0, 0, 1]));
     if (_root.keysdown.a)
         _root.camPos = addVec(_root.camPos, constMultVec(-_root.speed, camX));
     if (_root.keysdown.d)
@@ -85,16 +85,14 @@ function updatePosition(event) {
     const movementY =
         event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
-    const camX = crossVec(_root.camZ, [0, 0, 1]);
+    const camX = normalizeVec(crossVec(_root.camZ, [0, 0, 1]));
     const camY = crossVec(camX, _root.camZ);
-    _root.camZ = addVec(
-        _root.camZ,
-        constMultVec(movementX / 1000, camX),
-        constMultVec(-movementY / 1000, camY)
-    );
-    _root.camZ = constMultVec(
-        1 / Math.sqrt(dotVec(_root.camZ, _root.camZ)),
-        _root.camZ
+    _root.camZ = normalizeVec(
+        addVec(
+            _root.camZ,
+            constMultVec(movementX / 1000, camX),
+            constMultVec(-movementY / 1000, camY)
+        )
     );
 }
 
@@ -111,8 +109,8 @@ document.addEventListener("pointerlockchange", lockChangeAlert, false);
 const randomSphere = () => ({
     pos: Array(3)
         .fill()
-        .map(() => (Math.random() * 2 - 1) * 100),
-    radius: Math.random() * 100,
+        .map(() => (Math.random() * 2 - 1) * 10),
+    radius: Math.random() * 1,
     color: randomColor(),
 });
 
@@ -149,6 +147,10 @@ const crossVec = (x, y) => {
         x[2] * y[0] - x[0] * y[2],
         x[0] * y[1] - x[1] * y[0],
     ];
+};
+
+const normalizeVec = (x) => {
+    return constMultVec(1 / Math.sqrt(dotVec(x, x)), x);
 };
 
 const constMultVec = (a, v) => {

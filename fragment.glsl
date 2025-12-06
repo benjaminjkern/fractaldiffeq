@@ -71,7 +71,7 @@ void main() {
     int runs = 0;
 
     bool hitVoid = false;
-    for (int runs = 0; runs < 20; runs++) {
+    for (int runs = 0; runs < 10; runs++) {
         getColor(pos, dir, newColor, pos, dir, hitVoid);
         color = (color * float(runs) + newColor) / float(runs + 1);
         if (hitVoid) break;

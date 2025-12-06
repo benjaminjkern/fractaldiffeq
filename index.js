@@ -59,13 +59,13 @@ const sendUniforms = (gl, shaderProgram) => {
 const init = () => {
     _root.spheres = Array(100).fill().map(randomSphere);
     _root.camPos = [10, 0, 10];
-    _root.camZ = normalizeVec([-1, 0, -1]);
+    _root.camZ = normalizeVec([-1, 0, -0.5]);
 };
 
 const update = () => {
     for (let s = 0; s < _root.spheres.length; s++) {
         const sphere = _root.spheres[s];
-        sphere.v = addVec(sphere.v, [0, 0, -0.01]);
+        sphere.v = addVec(sphere.v, [0, 0, -0.001]);
         sphere.pos = addVec(sphere.pos, sphere.v);
         if (sphere.pos[2] - sphere.radius <= 0) {
             sphere.pos[2] = 2 * sphere.radius - sphere.pos[2];
@@ -91,9 +91,12 @@ const update = () => {
                     dotVec(dx, dx) - (sphere.radius + sphere2.radius) ** 2;
 
                 const t = (-b - Math.sqrt(b * b - 4 * a * c)) / 2 / a;
-                sphere.pos = addVec(sphere.pos, constMultVec(t, sphere.v));
-                sphere2.pos = addVec(sphere2.pos, constMultVec(t, sphere2.v));
 
+                sphere.pos = addVec(sphere.pos, constMultVec(t - 1, sphere.v));
+                sphere2.pos = addVec(
+                    sphere2.pos,
+                    constMultVec(t - 1, sphere2.v)
+                );
                 sphere.v = addVec(
                     sphere.v,
                     constMultVec(
@@ -178,8 +181,8 @@ const randomSphere = () => ({
         .map(() => (Math.random() * 2 - 1) * 10),
     v: Array(3)
         .fill()
-        .map(() => (Math.random() * 2 - 1) * 0.1),
-    radius: Math.random() * 1,
+        .map(() => (Math.random() * 2 - 1) * 0.01),
+    radius: Math.random() * 1 + 0.5,
     color: randomColor(),
 });
 

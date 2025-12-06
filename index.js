@@ -68,8 +68,15 @@ const update = () => {
     if (_root.keysdown.s)
         _root.camPos = addVec(
             _root.camPos,
-            constMultVec(-1 * _root.speed, _root.camZ)
+            constMultVec(-_root.speed, _root.camZ)
         );
+    // vec3 _camX = cross(camZ, vec3(0., 0., 1.));
+    // vec3 camX = _camX / sqrt(dot(_camX, _camX));
+    const camX = crossVec(_root.camZ, [0, 0, 1]);
+    if (_root.keysdown.a)
+        _root.camPos = addVec(_root.camPos, constMultVec(-_root.speed, camX));
+    if (_root.keysdown.d)
+        _root.camPos = addVec(_root.camPos, constMultVec(_root.speed, camX));
 };
 
 const randomSphere = () => ({
@@ -101,6 +108,14 @@ const randomColor = () => {
     return Array(3)
         .fill()
         .map(() => Math.random());
+};
+
+const crossVec = (x, y) => {
+    return [
+        x[1] * y[2] - x[2] - y[1],
+        x[2] * y[0] - x[0] * y[2],
+        x[0] * y[1] - x[1] * y[0],
+    ];
 };
 
 const constMultVec = (a, v) => {

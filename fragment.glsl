@@ -34,10 +34,10 @@ void main() {
         if (disc < 0.) continue;
         float sqdisc = sqrt(disc);
         float sqa = sqrt(a);
-        // float tp = -b + sqdisc;
-        // if (tp < 0.) continue;
+        float tp = -b + sqdisc;
+        if (tp < 0.) continue;
         float tm = -b - sqdisc;
-        float t = tm / a;
+        float t = (tm < 0. ? tp : tm) / a;
         if (t * sqa < dist) {
             dist = t;
             color = colors[s];

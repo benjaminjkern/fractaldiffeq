@@ -20,7 +20,7 @@ void main() {
 
     vec2 adjustedScreenPos = (screenPos - screenSize / 2.) / overallSize;
 
-    vec3 ray = adjustedScreenPos[0] * camX + adjustedScreenPos[1] * camY + camZ;
+    vec3 ray = adjustedScreenPos.x * camX + adjustedScreenPos.y * camY + camZ;
 
     float dist = 1e20;
     vec3 color = vec3(0., 0., 0.);
@@ -29,7 +29,7 @@ void main() {
         vec3 diff = camPos - spheres[s];
         float a = dot(ray, ray);
         float b =  dot(ray, diff);
-        float c = a * dot(diff, diff) - radii[s] * radii[s];
+        float c = dot(diff, diff) - radii[s] * radii[s];
         float disc = b * b - a * c;
         if (disc < 0.) continue;
         float sqdisc = sqrt(disc);
@@ -38,7 +38,7 @@ void main() {
         if (tp < 0.) continue;
         float tm = -b - sqdisc;
         float t = (tm < 0. ? tp : tm) / a;
-        if (t * sqa < dist) {
+        if (t < dist) {
             dist = t;
             color = colors[s];
         }

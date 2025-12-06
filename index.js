@@ -67,10 +67,7 @@ const update = () => {
         sphere.v = addVec(sphere.v, [0, 0, -0.01]);
         sphere.pos = addVec(sphere.pos, sphere.v);
         if (sphere.pos[2] - sphere.radius <= 0) {
-            sphere.pos[2] = Math.min(
-                sphere.radius,
-                sphere.radius - sphere.pos[2]
-            );
+            sphere.pos[2] = 2 * sphere.radius - sphere.pos[2];
             sphere.v[2] = Math.abs(sphere.v[2]);
         }
     }

@@ -12,8 +12,7 @@ uniform vec3 camZ;
 void main() {
     vec2 screenPos = gl_FragCoord.xy;
 
-    vec3 _camX = cross(camZ, vec3(0., 0., 1.));
-    vec3 camX = _camX / sqrt(dot(_camX, _camX));
+    vec3 camX = cross(camZ, vec3(0., 0., 1.));
     vec3 camY = cross(camX, camZ);
 
     float overallSize = min(screenSize[0], screenSize[1]);

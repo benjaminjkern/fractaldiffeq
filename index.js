@@ -2,11 +2,14 @@ import WebGLShaderRenderer from "./webgl.js";
 
 const _root = {
     keysdown: {},
-    speed: 0.01,
+    speed: 0.1,
 };
 
 window.onload = async () => {
     const canvas = document.getElementById("canvas");
+    canvas.addEventListener("click", () => {
+        canvas.requestPointerLock();
+    });
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -78,6 +81,39 @@ const update = () => {
     if (_root.keysdown.d)
         _root.camPos = addVec(_root.camPos, constMultVec(_root.speed, camX));
 };
+function updatePosition(event) {
+    const movementX =
+        event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+    const movementY =
+        event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+
+    const camX = crossVec(_root.camZ, [0, 0, 1]);
+    const camY = crossVec(camX, _root.camZ);
+    _root.camZ = addVec(
+        _root.camZ,
+        constMultVec(movementX / 1000, camX),
+        constMultVec(-movementY / 1000, camY)
+    );
+    _root.camZ = constMultVec(
+        1 / Math.sqrt(dotVec(_root.camZ, _root.camZ)),
+        _root.camZ
+    );
+
+    // Use movementX and movementY to rotate your 3D camera/view
+    // e.g., in three.js: controls.update(movementX, movementY);
+}
+
+function lockChangeAlert() {
+    if (document.pointerLockElement === canvas) {
+        console.log("The pointer lock status is now locked");
+        document.addEventListener("mousemove", updatePosition, false);
+    } else {
+        console.log("The pointer lock status is now unlocked");
+        document.removeEventListener("mousemove", updatePosition, false);
+    }
+}
+
+document.addEventListener("pointerlockchange", lockChangeAlert, false);
 
 const randomSphere = () => ({
     pos: Array(3)
@@ -108,6 +144,10 @@ const randomColor = () => {
     return Array(3)
         .fill()
         .map(() => Math.random());
+};
+
+const dotVec = (x, y) => {
+    return x.reduce((p, c, i) => p + c * y[i], 0);
 };
 
 const crossVec = (x, y) => {

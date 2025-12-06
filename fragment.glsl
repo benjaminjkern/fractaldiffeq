@@ -56,6 +56,11 @@ void main() {
 
     getColor(pos, dir, color, pos, dir);
     getColor(pos, dir, color, pos, dir);
+    getColor(pos, dir, color, pos, dir);
+    getColor(pos, dir, color, pos, dir);
+    getColor(pos, dir, color, pos, dir);
+    getColor(pos, dir, color, pos, dir);
+    getColor(pos, dir, color, pos, dir);
 
     gl_FragColor = vec4(color, 1.0);
 }

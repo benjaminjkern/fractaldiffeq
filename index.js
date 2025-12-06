@@ -87,6 +87,8 @@ function updatePosition(event) {
     const movementY =
         event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
+    console.log(movementX, movementY);
+
     const camX = crossVec(_root.camZ, [0, 0, 1]);
     const camY = crossVec(camX, _root.camZ);
     _root.camZ = addVec(
@@ -99,16 +101,13 @@ function updatePosition(event) {
         _root.camZ
     );
 
-    // Use movementX and movementY to rotate your 3D camera/view
-    // e.g., in three.js: controls.update(movementX, movementY);
+    console.log(_root.camZ);
 }
 
 function lockChangeAlert() {
     if (document.pointerLockElement === canvas) {
-        console.log("The pointer lock status is now locked");
         document.addEventListener("mousemove", updatePosition, false);
     } else {
-        console.log("The pointer lock status is now unlocked");
         document.removeEventListener("mousemove", updatePosition, false);
     }
 }
@@ -152,7 +151,7 @@ const dotVec = (x, y) => {
 
 const crossVec = (x, y) => {
     return [
-        x[1] * y[2] - x[2] - y[1],
+        x[1] * y[2] - x[2] * y[1],
         x[2] * y[0] - x[0] * y[2],
         x[0] * y[1] - x[1] * y[0],
     ];

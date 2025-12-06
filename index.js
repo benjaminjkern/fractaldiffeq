@@ -65,6 +65,14 @@ const init = () => {
 const update = () => {
     for (const sphere of _root.spheres) {
         sphere.pos = addVec(sphere.pos, sphere.v);
+        if (sphere.pos[2] - sphere.radius <= 0) {
+            sphere.pos[2] = sphere.radius;
+            sphere.v[2] = -sphere.v[2];
+        }
+        if (sphere.pos[2] + sphere.radius >= 10) {
+            sphere.pos[2] = 10 - sphere.radius;
+            sphere.v[2] = -sphere.v[2];
+        }
     }
     const camX = normalizeVec(crossVec(_root.camZ, [0, 0, 1]));
     const camLateral = crossVec([0, 0, 1], camX);
@@ -127,7 +135,7 @@ const randomSphere = () => ({
         .map(() => (Math.random() * 2 - 1) * 10),
     v: Array(3)
         .fill()
-        .map(() => (Math.random() * 2 - 1) * 0.0),
+        .map(() => (Math.random() * 2 - 1) * 0.1),
     radius: Math.random() * 1,
     color: randomColor(),
 });

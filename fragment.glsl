@@ -10,7 +10,7 @@ uniform vec3 camPos;
 uniform vec3 camZ;
 
 
-void getColor(in vec3 pos, in vec3 dir, out vec3 color, out vec3 newPos, out vec3 newDir, out bool hitVoid) {
+void getColor(in vec3 pos, in vec3 dir, out vec3 color, out vec3 newPos, out vec3 newDir, out bool hitVoid, out float match) {
     float dist = 1e20;
     vec3 hitColor = vec3(1., 1., 1.);
 
@@ -48,9 +48,11 @@ void getColor(in vec3 pos, in vec3 dir, out vec3 color, out vec3 newPos, out vec
             hitColor = colors[s];
         }
     }
+    match = -dot(dir, norm) / sqa;
+    if (hitVoid) match = 1.;
     color = hitColor;
     newPos = pos + dir * (dist / sqa - 0.01);
-    newDir = dir - 2. * dot(dir, norm) * norm;
+    newDir = dir + 2. * match * sqa * norm;
 }
 
 void main() {
@@ -70,11 +72,15 @@ void main() {
     vec3 color;
     int runs = 0;
 
+    float sum = 0.;
+    float match;
+
     bool hitVoid = false;
     for (int runs = 0; runs < 5; runs++) {
-        getColor(pos, dir, newColor, pos, dir, hitVoid);
-        color = (color * float(runs) + newColor) / float(runs + 1);
+        getColor(pos, dir, newColor, pos, dir, hitVoid, match);
+        color = (color * sum + newColor) / float(sum + match);
         if (hitVoid) break;
+        sum += match;
     }
 
     gl_FragColor = vec4(color, 1.0);

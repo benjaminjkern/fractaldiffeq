@@ -28,14 +28,15 @@ void main() {
     for (int s = 0; s < NUM_SPHERES; s++) {
         vec3 diff = camPos - spheres[s];
         float a = dot(ray, ray);
-        float b = dot(ray, diff);
+        float b =  dot(ray, diff);
         float c = a * dot(diff, diff) - radii[s] * radii[s];
-        float disc = b * b - 4. * a * c;
+        float disc = b * b - a * c;
         if (disc < 0.) continue;
         float sqdisc = sqrt(disc);
         float sqa = sqrt(a);
-        float tm = -b - sqdisc;
         float tp = -b + sqdisc;
+        if (tp < 0.) continue;
+        float tm = -b - sqdisc;
         float t = (tm < 0. ? tp : tm) / sqa;
         if (t < dist) {
             dist = t;

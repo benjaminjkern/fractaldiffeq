@@ -62,64 +62,120 @@ const init = () => {
     _root.camZ = normalizeVec([-1, 0, -0.5]);
 };
 
-const update = () => {
-    for (let s = 0; s < _root.spheres.length; s++) {
-        const sphere = _root.spheres[s];
-        sphere.v = addVec(sphere.v, [0, 0, -0.001]);
-        sphere.pos = addVec(sphere.pos, sphere.v);
-        if (sphere.pos[2] - sphere.radius <= 0) {
-            sphere.pos[2] = 2 * sphere.radius - sphere.pos[2];
-            sphere.v[2] = -sphere.v[2];
-        }
-        for (let t = s + 1; t < _root.spheres.length; t++) {
-            const sphere2 = _root.spheres[t];
-            const diff = subVec(sphere.pos, sphere2.pos);
-            if (dotVec(diff, diff) <= (sphere.radius + sphere2.radius) ** 2) {
-                const diffNorm = normalizeVec(diff);
-                const vNorm = dotVec(diffNorm, sphere2.v);
-                const v2Norm = dotVec(diffNorm, sphere.v);
-                const mass = sphere.radius ** 3;
-                const mass2 = sphere.radius ** 3;
-                const massSum = mass + mass2;
+const checkAllSpheresCollisions = () => {
+    for (const sphere of _root.spheres) {
+        sphere.t = 0;
+        sphere.checked = false;
+    }
 
-                const dv = subVec(sphere.v, sphere2.v);
-                const dx = subVec(sphere.pos, sphere2.pos);
+    while (true) {
+        const potentialCollisions = [];
+        for (const sphere of _root.spheres) {
+            if (sphere.checked) continue;
+
+            // Check plane
+            const t =
+                (sphere.radius - sphere.pos[2] - sphere.t * sphere.v[2]) /
+                sphere.v[2];
+            if (t >= 0 && t < 1) {
+                potentialCollisions.push({
+                    t,
+                    spheres: [sphere],
+                    impulses: [[0, 0, -2 * sphere.v[2] * sphere.mass]],
+                });
+            }
+        }
+        for (let s = 0; s < _root.spheres.length; s++) {
+            const sphere1 = _root.spheres[s];
+
+            for (let p = s + 1; p < _root.spheres.length; p++) {
+                const sphere2 = _root.spheres[p];
+                if (sphere2.checked && sphere1.checked) continue;
+
+                const dv = subVec(sphere1.v, sphere2.v);
+                const dx = subVec(
+                    addVec(sphere1.pos, constMultVec(-sphere1.t, sphere1.v)),
+                    addVec(sphere2.pos, constMultVec(-sphere2.t, sphere2.v))
+                );
 
                 const a = dotVec(dv, dv);
                 const b = 2 * dotVec(dv, dx);
                 const c =
-                    dotVec(dx, dx) - (sphere.radius + sphere2.radius) ** 2;
+                    dotVec(dx, dx) - (sphere1.radius + sphere2.radius) ** 2;
+                const disc = b * b - 4 * a * c;
 
-                const t = (-b - Math.sqrt(b * b - 4 * a * c)) / 2 / a;
+                if (disc < 0) continue;
 
-                sphere.pos = addVec(sphere.pos, constMultVec(t - 1, sphere.v));
-                sphere2.pos = addVec(
-                    sphere2.pos,
-                    constMultVec(t - 1, sphere2.v)
-                );
-                sphere.v = addVec(
-                    sphere.v,
-                    constMultVec(
-                        ((2 * mass2) / massSum) * (vNorm - v2Norm),
-                        diffNorm
-                    )
-                );
-                sphere2.v = addVec(
-                    sphere2.v,
-                    constMultVec(
-                        ((2 * mass) / massSum) * (v2Norm - vNorm),
-                        diffNorm
+                const t = (-b - Math.sqrt(disc)) / 2 / a;
+                if (t < 0 || t >= 1) continue;
+
+                const norm = normalizeVec(
+                    subVec(
+                        addVec(
+                            sphere1.pos,
+                            constMultVec(t - sphere1.t, sphere1.v)
+                        ),
+                        addVec(
+                            sphere2.pos,
+                            constMultVec(t - sphere2.t, sphere2.v)
+                        )
                     )
                 );
 
-                sphere.pos = addVec(sphere.pos, constMultVec(1 - t, sphere.v));
-                sphere2.pos = addVec(
-                    sphere2.pos,
-                    constMultVec(1 - t, sphere2.v)
-                );
+                const v1Norm = dotVec(sphere1.v, norm);
+                const v2Norm = dotVec(sphere2.v, norm);
+                const impulse =
+                    ((2 * sphere1.mass * sphere2.mass) /
+                        (sphere1.mass + sphere2.mass)) *
+                    (v1Norm - v2Norm);
+
+                potentialCollisions.push({
+                    t,
+                    spheres: [sphere1, sphere2],
+                    impulses: [
+                        constMultVec(-impulse, norm),
+                        constMultVec(impulse, norm),
+                    ],
+                });
             }
         }
+        for (const sphere of _root.spheres) {
+            sphere.checked = true;
+        }
+        if (!potentialCollisions.length) break;
+
+        potentialCollisions.sort((a, b) => a.t - b.t);
+        const firstPotentialCollision = potentialCollisions[0];
+        for (const [i, sphere] of firstPotentialCollision.spheres.entries()) {
+            console.log("Collision!");
+            sphere.pos = addVec(
+                sphere.pos,
+                constMultVec(firstPotentialCollision.t, sphere.v)
+            );
+            sphere.v = addVec(
+                sphere.v,
+                constMultVec(
+                    1 / sphere.mass,
+                    firstPotentialCollision.impulses[i]
+                )
+            );
+            sphere.t = firstPotentialCollision.t;
+            sphere.checked = false;
+        }
     }
+
+    for (const sphere of _root.spheres) {
+        sphere.pos = addVec(sphere.pos, constMultVec(1 - sphere.t, sphere.v));
+    }
+};
+
+const update = () => {
+    for (const sphere of _root.spheres) {
+        // gravity
+        sphere.v = addVec(sphere.v, [0, 0, -0.001]);
+    }
+    checkAllSpheresCollisions();
+
     const camX = normalizeVec(crossVec(_root.camZ, [0, 0, 1]));
     const camLateral = crossVec([0, 0, 1], camX);
     if (_root.keysdown.w)
@@ -175,16 +231,23 @@ const lockChangeAlert = () => {
 
 document.addEventListener("pointerlockchange", lockChangeAlert, false);
 
-const randomSphere = () => ({
-    pos: Array(3)
-        .fill()
-        .map(() => (Math.random() * 2 - 1) * 10),
-    v: Array(3)
-        .fill()
-        .map(() => (Math.random() * 2 - 1) * 0.01),
-    radius: Math.random() * 1 + 0.5,
-    color: randomColor(),
-});
+const randomSphere = () => {
+    const radius = Math.random() * 1 + 0.5;
+    return {
+        pos: addVec(
+            Array(3)
+                .fill()
+                .map(() => (Math.random() * 2 - 1) * 10),
+            [0, 0, 10]
+        ),
+        v: Array(3)
+            .fill()
+            .map(() => (Math.random() * 2 - 1) * 0.01),
+        radius,
+        mass: 0.1 * radius ** 3,
+        color: randomColor(),
+    };
+};
 
 window.onkeydown = (e) => {
     if (["a", "s", "d", "w", " ", "shift"].includes(e.key.toLowerCase()))

@@ -12,7 +12,7 @@ uniform vec3 camZ;
 
 void getColor(in vec3 pos, in vec3 dir, out vec3 color, out vec3 newPos, out vec3 newDir, out bool hitVoid) {
     float dist = 1e20;
-    vec3 hitColor = vec3(0., 0., 0.);
+    vec3 hitColor = vec3(1., 1., 1.);
 
     float a = dot(dir, dir);
     float sqa = sqrt(a);
@@ -26,7 +26,7 @@ void getColor(in vec3 pos, in vec3 dir, out vec3 color, out vec3 newPos, out vec
         hitVoid = false;
         dist = tPlane;
         norm = vec3(0., 0., 1.);
-        hitColor = vec3(1., 1., 1.);
+        hitColor = vec3(0., 0., 0.);
     }
 
     for (int s = 0; s < NUM_SPHERES; s++) {

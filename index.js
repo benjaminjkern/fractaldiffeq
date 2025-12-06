@@ -58,17 +58,63 @@ const sendUniforms = (gl, shaderProgram) => {
 
 const init = () => {
     _root.spheres = Array(100).fill().map(randomSphere);
-    _root.camPos = [1, 0, 1];
-    _root.camZ = normalizeVec([-1, 0, 0]);
+    _root.camPos = [10, 0, 10];
+    _root.camZ = normalizeVec([-1, 0, -1]);
 };
 
 const update = () => {
-    for (const sphere of _root.spheres) {
+    for (let s = 0; s < _root.spheres.length; s++) {
+        const sphere = _root.spheres[s];
         sphere.v = addVec(sphere.v, [0, 0, -0.01]);
         sphere.pos = addVec(sphere.pos, sphere.v);
         if (sphere.pos[2] - sphere.radius <= 0) {
             sphere.pos[2] = 2 * sphere.radius - sphere.pos[2];
-            sphere.v[2] = Math.abs(sphere.v[2]);
+            sphere.v[2] = -sphere.v[2];
+        }
+        for (let t = s + 1; t < _root.spheres.length; t++) {
+            const sphere2 = _root.spheres[t];
+            const diff = subVec(sphere.pos, sphere2.pos);
+            if (dotVec(diff, diff) <= (sphere.radius + sphere2.radius) ** 2) {
+                const diffNorm = normalizeVec(diff);
+                const vNorm = dotVec(diffNorm, sphere2.v);
+                const v2Norm = dotVec(diffNorm, sphere.v);
+                const mass = sphere.radius ** 3;
+                const mass2 = sphere.radius ** 3;
+                const massSum = mass + mass2;
+
+                const dv = subVec(sphere.v, sphere2.v);
+                const dx = subVec(sphere.pos, sphere2.pos);
+
+                const a = dotVec(dv, dv);
+                const b = 2 * dotVec(dv, dx);
+                const c =
+                    dotVec(dx, dx) - (sphere.radius + sphere2.radius) ** 2;
+
+                const t = (-b - Math.sqrt(b * b - 4 * a * c)) / 2 / a;
+                sphere.pos = addVec(sphere.pos, constMultVec(t, sphere.v));
+                sphere2.pos = addVec(sphere2.pos, constMultVec(t, sphere2.v));
+
+                sphere.v = addVec(
+                    sphere.v,
+                    constMultVec(
+                        ((2 * mass2) / massSum) * (vNorm - v2Norm),
+                        diffNorm
+                    )
+                );
+                sphere2.v = addVec(
+                    sphere2.v,
+                    constMultVec(
+                        ((2 * mass) / massSum) * (v2Norm - vNorm),
+                        diffNorm
+                    )
+                );
+
+                sphere.pos = addVec(sphere.pos, constMultVec(1 - t, sphere.v));
+                sphere2.pos = addVec(
+                    sphere2.pos,
+                    constMultVec(1 - t, sphere2.v)
+                );
+            }
         }
     }
     const camX = normalizeVec(crossVec(_root.camZ, [0, 0, 1]));
@@ -191,6 +237,10 @@ const addVec = (a, ...rest) => {
     if (rest.length === 0) return a;
     const restSum = addVec(...rest);
     return a.map((x, i) => x + restSum[i]);
+};
+
+const subVec = (a, b) => {
+    return a.map((x, i) => x - b[i]);
 };
 
 const randVec = (length) =>

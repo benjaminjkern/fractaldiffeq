@@ -111,8 +111,8 @@ document.addEventListener("pointerlockchange", lockChangeAlert, false);
 const randomSphere = () => ({
     pos: Array(3)
         .fill()
-        .map(() => Math.random() * 2 - 1),
-    radius: Math.random() + 1,
+        .map(() => (Math.random() * 2 - 1) * 100),
+    radius: Math.random() * 100,
     color: randomColor(),
 });
 

@@ -10,9 +10,11 @@ uniform vec3 camPos;
 uniform vec3 camZ;
 
 
-void getColor(in vec3 pos, in vec3 dir, out vec3 color, out vec3 newPos, out vec3 newDir) {
+void getColor(in vec3 pos, in vec3 dir, out vec3 color, out vec3 newPos, out vec3 newDir, out bool hitVoid) {
     float dist = 1e20;
     vec3 hitColor = vec3(0., 0., 0.);
+
+    hitVoid = true;
 
     vec3 norm;
 
@@ -30,14 +32,15 @@ void getColor(in vec3 pos, in vec3 dir, out vec3 color, out vec3 newPos, out vec
         float tm = -b - sqdisc;
         float t = (tm < 0. ? tp : tm) / a;
         if (t * sqa < dist) {
+            hitVoid = false;
             dist = t * sqa;
-            newPos = pos + dir * t;
+            newPos = pos + dir * (t - 0.01);
             norm = (newPos - spheres[s]) / radii[s];
+            newDir = dir - 2. * dot(dir, norm) * norm;
             hitColor = colors[s];
         }
     }
     color = hitColor;
-    newDir = dir - 2. * dot(dir, norm) * norm;
 }
 
 void main() {
@@ -52,15 +55,16 @@ void main() {
 
     vec3 pos = camPos;
     vec3 dir = adjustedScreenPos.x * camX + adjustedScreenPos.y * camY + camZ;
+    vec3 newColor;
     vec3 color;
+    int runs = 0;
 
-    getColor(pos, dir, color, pos, dir);
-    getColor(pos, dir, color, pos, dir);
-    getColor(pos, dir, color, pos, dir);
-    getColor(pos, dir, color, pos, dir);
-    getColor(pos, dir, color, pos, dir);
-    getColor(pos, dir, color, pos, dir);
-    getColor(pos, dir, color, pos, dir);
+    bool hitVoid = false;
+    for (int runs = 0; runs < 10; runs++) {
+        getColor(pos, dir, newColor, pos, dir, hitVoid);
+        color = (color * float(runs) + newColor) / float(runs + 1);
+        if (hitVoid) break;
+    }
 
     gl_FragColor = vec4(color, 1.0);
 }

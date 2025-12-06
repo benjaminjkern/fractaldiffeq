@@ -71,6 +71,7 @@ const checkAllSpheresCollisions = () => {
 
     const potentialCollisions = [];
 
+    // Just so it doesn't get stuck
     let loops = 500;
 
     while (loops > 0) {
@@ -151,11 +152,9 @@ const checkAllSpheresCollisions = () => {
         potentialCollisions.sort((a, b) => b.t - a.t);
         const firstPotentialCollision = potentialCollisions.pop();
         for (const [i, sphere] of firstPotentialCollision.spheres.entries()) {
-            if (i > 0) console.log("Ball collision!");
-
             sphere.pos = addVec(
                 sphere.pos,
-                constMultVec(firstPotentialCollision.t, sphere.v)
+                constMultVec(firstPotentialCollision.t - 0.01, sphere.v)
             );
             sphere.v = addVec(
                 sphere.v,
@@ -208,6 +207,41 @@ const update = () => {
             _root.camPos,
             constMultVec(-_root.speed, [0, 0, 1])
         );
+    if (_root.keysdown.e) {
+        if (!_root.cooldown) {
+            // _root.cooldown = true;
+            // setTimeout(() => {
+            //     _root.cooldown = false;
+            // }, 1000);
+            let furthestSphere = [null, null];
+            for (const sphere of _root.spheres) {
+                const distVec = subVec(sphere.pos, _root.camPos);
+                const dist = dotVec(distVec, distVec);
+                if (furthestSphere[0] === null || dist > furthestSphere[0])
+                    furthestSphere = [dist, sphere];
+            }
+            const newPos = addVec(
+                _root.camPos,
+                constMultVec(furthestSphere[1].radius, _root.camZ)
+            );
+
+            let hitAny = false;
+            for (const sphere of _root.spheres) {
+                const dist = subVec(sphere.pos, newPos);
+                if (
+                    dotVec(dist, dist) <=
+                    (furthestSphere[1].radius + sphere.radius) ** 2
+                ) {
+                    hitAny = true;
+                    break;
+                }
+            }
+            if (!hitAny) {
+                furthestSphere[1].pos = newPos;
+                furthestSphere[1].v = constMultVec(0.1, _root.camZ);
+            }
+        }
+    }
 };
 const updatePosition = (event) => {
     const movementX =
@@ -237,7 +271,7 @@ const lockChangeAlert = () => {
 document.addEventListener("pointerlockchange", lockChangeAlert, false);
 
 const randomSphere = () => {
-    const radius = Math.random() * 1 + 0.5;
+    const radius = Math.random() * 0.7 + 0.1;
     return {
         pos: addVec(
             Array(3)
@@ -255,11 +289,11 @@ const randomSphere = () => {
 };
 
 window.onkeydown = (e) => {
-    if (["a", "s", "d", "w", " ", "shift"].includes(e.key.toLowerCase()))
+    if (["a", "s", "d", "w", " ", "shift", "e"].includes(e.key.toLowerCase()))
         _root.keysdown[e.key.toLowerCase()] = true;
 };
 window.onkeyup = (e) => {
-    if (["a", "s", "d", "w", " ", "shift"].includes(e.key.toLowerCase()))
+    if (["a", "s", "d", "w", " ", "shift", "e"].includes(e.key.toLowerCase()))
         _root.keysdown[e.key.toLowerCase()] = false;
 };
 

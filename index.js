@@ -64,13 +64,10 @@ const init = () => {
 
 const update = () => {
     for (const sphere of _root.spheres) {
+        sphere.v = addVec(sphere.v, [0, 0, -0.1]);
         sphere.pos = addVec(sphere.pos, sphere.v);
         if (sphere.pos[2] - sphere.radius <= 0) {
             sphere.pos[2] = sphere.radius;
-            sphere.v[2] = -sphere.v[2];
-        }
-        if (sphere.pos[2] + sphere.radius >= 10) {
-            sphere.pos[2] = 10 - sphere.radius;
             sphere.v[2] = -sphere.v[2];
         }
     }

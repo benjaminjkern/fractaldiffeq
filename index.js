@@ -208,38 +208,32 @@ const update = () => {
             constMultVec(-_root.speed, [0, 0, 1])
         );
     if (_root.keysdown.e) {
-        if (!_root.cooldown) {
-            // _root.cooldown = true;
-            // setTimeout(() => {
-            //     _root.cooldown = false;
-            // }, 1000);
-            let furthestSphere = [null, null];
-            for (const sphere of _root.spheres) {
-                const distVec = subVec(sphere.pos, _root.camPos);
-                const dist = dotVec(distVec, distVec);
-                if (furthestSphere[0] === null || dist > furthestSphere[0])
-                    furthestSphere = [dist, sphere];
-            }
-            const newPos = addVec(
-                _root.camPos,
-                constMultVec(furthestSphere[1].radius, _root.camZ)
-            );
+        let furthestSphere = [null, null];
+        for (const sphere of _root.spheres) {
+            const distVec = subVec(sphere.pos, _root.camPos);
+            const dist = dotVec(distVec, distVec);
+            if (furthestSphere[0] === null || dist > furthestSphere[0])
+                furthestSphere = [dist, sphere];
+        }
+        const newPos = addVec(
+            _root.camPos,
+            constMultVec(furthestSphere[1].radius, _root.camZ)
+        );
 
-            let hitAny = false;
-            for (const sphere of _root.spheres) {
-                const dist = subVec(sphere.pos, newPos);
-                if (
-                    dotVec(dist, dist) <=
-                    (furthestSphere[1].radius + sphere.radius) ** 2
-                ) {
-                    hitAny = true;
-                    break;
-                }
+        let hitAny = false;
+        for (const sphere of _root.spheres) {
+            const dist = subVec(sphere.pos, newPos);
+            if (
+                dotVec(dist, dist) <=
+                (furthestSphere[1].radius + sphere.radius) ** 2
+            ) {
+                hitAny = true;
+                break;
             }
-            if (!hitAny) {
-                furthestSphere[1].pos = newPos;
-                furthestSphere[1].v = constMultVec(0.1, _root.camZ);
-            }
+        }
+        if (!hitAny) {
+            furthestSphere[1].pos = newPos;
+            furthestSphere[1].v = constMultVec(0.1, _root.camZ);
         }
     }
 };

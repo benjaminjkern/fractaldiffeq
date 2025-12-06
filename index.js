@@ -58,6 +58,7 @@ const sendUniforms = (gl, shaderProgram) => {
 
 const init = () => {
     _root.spheres = Array(100).fill().map(randomSphere);
+    _root.spheres;
     _root.camPos = [10, 0, 10];
     _root.camZ = normalizeVec([-1, 0, -0.5]);
 };
@@ -68,8 +69,9 @@ const checkAllSpheresCollisions = () => {
         sphere.checked = false;
     }
 
+    const potentialCollisions = [];
+
     while (true) {
-        const potentialCollisions = [];
         for (const sphere of _root.spheres) {
             if (sphere.checked) continue;
 
@@ -144,10 +146,11 @@ const checkAllSpheresCollisions = () => {
         }
         if (!potentialCollisions.length) break;
 
-        potentialCollisions.sort((a, b) => a.t - b.t);
-        const firstPotentialCollision = potentialCollisions[0];
+        potentialCollisions.sort((a, b) => b.t - a.t);
+        const firstPotentialCollision = potentialCollisions.pop();
         for (const [i, sphere] of firstPotentialCollision.spheres.entries()) {
-            console.log("Collision!");
+            if (i > 0) console.log("Ball collision!");
+
             sphere.pos = addVec(
                 sphere.pos,
                 constMultVec(firstPotentialCollision.t, sphere.v)

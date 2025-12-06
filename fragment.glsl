@@ -20,12 +20,12 @@ void getColor(in vec3 pos, in vec3 dir, out vec3 color, out vec3 newPos, out vec
     vec3 norm;
     hitVoid = true;
 
-    vec3 planeDiff = pos - vec3(0.,0.,0.);
-    float tPlane = dot(planeDiff, vec3(0., 0., 1.)) / sqa;
+    vec3 planeDiff = vec3(0.,0.,0.) - pos;
+    float tPlane = dot(planeDiff, vec3(0., 0., 1.)) / dot(dir, vec3(0., 0., 1.)) * sqa;
     if (tPlane >= 0. && tPlane < dist) {
         hitVoid = false;
         dist = tPlane;
-        newPos = pos + dir * (tPlane - 0.01);
+        newPos = pos + dir * (tPlane / sqa - 0.01);
         norm = vec3(0., 0., 1.);
         newDir = dir - 2. * dot(dir, norm) * norm;
         hitColor = vec3(1., 1., 1.);
@@ -45,7 +45,7 @@ void getColor(in vec3 pos, in vec3 dir, out vec3 color, out vec3 newPos, out vec
         if (t < dist) {
             hitVoid = false;
             dist = t;
-            newPos = pos + dir * (t - 0.01);
+            newPos = pos + dir * (t / sqa - 0.01);
             norm = (newPos - spheres[s]) / radii[s];
             newDir = dir - 2. * dot(dir, norm) * norm;
             hitColor = colors[s];

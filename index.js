@@ -127,13 +127,12 @@ const randomSphere = () => ({
         .map(() => (Math.random() * 2 - 1) * 10),
     v: Array(3)
         .fill()
-        .map(() => (Math.random() * 2 - 1) * 0.01),
+        .map(() => (Math.random() * 2 - 1) * 0.0),
     radius: Math.random() * 1,
     color: randomColor(),
 });
 
 window.onkeydown = (e) => {
-    console.log(e.key);
     if (["a", "s", "d", "w", " ", "shift"].includes(e.key.toLowerCase()))
         _root.keysdown[e.key.toLowerCase()] = true;
 };

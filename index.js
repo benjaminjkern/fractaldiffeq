@@ -63,23 +63,38 @@ const init = () => {
 };
 
 const update = () => {
+    for (const sphere of _root.spheres) {
+        sphere.pos = addVec(sphere.pos, sphere.v);
+    }
+    const camX = normalizeVec(crossVec(_root.camZ, [0, 0, 1]));
+    const camLateral = crossVec([0, 0, 1], camX);
     if (_root.keysdown.w)
         _root.camPos = addVec(
             _root.camPos,
-            constMultVec(_root.speed, _root.camZ)
+            constMultVec(_root.speed, camLateral)
         );
     if (_root.keysdown.s)
         _root.camPos = addVec(
             _root.camPos,
-            constMultVec(-_root.speed, _root.camZ)
+            constMultVec(-_root.speed, camLateral)
         );
-    const camX = normalizeVec(crossVec(_root.camZ, [0, 0, 1]));
     if (_root.keysdown.a)
         _root.camPos = addVec(_root.camPos, constMultVec(-_root.speed, camX));
     if (_root.keysdown.d)
         _root.camPos = addVec(_root.camPos, constMultVec(_root.speed, camX));
+
+    if (_root.keysdown[" "])
+        _root.camPos = addVec(
+            _root.camPos,
+            constMultVec(_root.speed, [0, 0, 1])
+        );
+    if (_root.keysdown.shift)
+        _root.camPos = addVec(
+            _root.camPos,
+            constMultVec(-_root.speed, [0, 0, 1])
+        );
 };
-function updatePosition(event) {
+const updatePosition = (event) => {
     const movementX =
         event.movementX || event.mozMovementX || event.webkitMovementX || 0;
     const movementY =
@@ -94,15 +109,15 @@ function updatePosition(event) {
             constMultVec(-movementY / 1000, camY)
         )
     );
-}
+};
 
-function lockChangeAlert() {
+const lockChangeAlert = () => {
     if (document.pointerLockElement === canvas) {
         document.addEventListener("mousemove", updatePosition, false);
     } else {
         document.removeEventListener("mousemove", updatePosition, false);
     }
-}
+};
 
 document.addEventListener("pointerlockchange", lockChangeAlert, false);
 
@@ -110,15 +125,21 @@ const randomSphere = () => ({
     pos: Array(3)
         .fill()
         .map(() => (Math.random() * 2 - 1) * 10),
+    v: Array(3)
+        .fill()
+        .map(() => (Math.random() * 2 - 1) * 0.01),
     radius: Math.random() * 1,
     color: randomColor(),
 });
 
 window.onkeydown = (e) => {
-    if (["a", "s", "d", "w"].includes(e.key)) _root.keysdown[e.key] = true;
+    console.log(e.key);
+    if (["a", "s", "d", "w", " ", "shift"].includes(e.key.toLowerCase()))
+        _root.keysdown[e.key.toLowerCase()] = true;
 };
 window.onkeyup = (e) => {
-    if (["a", "s", "d", "w"].includes(e.key)) _root.keysdown[e.key] = false;
+    if (["a", "s", "d", "w", " ", "shift"].includes(e.key.toLowerCase()))
+        _root.keysdown[e.key.toLowerCase()] = false;
 };
 
 /****

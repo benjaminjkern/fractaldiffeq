@@ -14,26 +14,37 @@ void getColor(in vec3 pos, in vec3 dir, out vec3 color, out vec3 newPos, out vec
     float dist = 1e20;
     vec3 hitColor = vec3(0., 0., 0.);
 
-    hitVoid = true;
+    float a = dot(dir, dir);
+    float sqa = sqrt(a);
 
     vec3 norm;
+    hitVoid = true;
+
+    vec3 planeDiff = pos - vec3(0.,0.,0.);
+    float tPlane = dot(planeDiff, vec3(0., 0., 1.)) / sqa;
+    if (tPlane >= 0. && tPlane < dist) {
+        hitVoid = false;
+        dist = tPlane;
+        newPos = pos + dir * (tPlane - 0.01);
+        norm = vec3(0., 0., 1.);
+        newDir = dir - 2. * dot(dir, norm) * norm;
+        hitColor = vec3(1., 1., 1.);
+    }
 
     for (int s = 0; s < NUM_SPHERES; s++) {
         vec3 diff = pos - spheres[s];
-        float a = dot(dir, dir);
         float b =  dot(dir, diff);
         float c = dot(diff, diff) - radii[s] * radii[s];
         float disc = b * b - a * c;
         if (disc < 0.) continue;
         float sqdisc = sqrt(disc);
-        float sqa = sqrt(a);
         float tp = -b + sqdisc;
         if (tp < 0.) continue;
         float tm = -b - sqdisc;
-        float t = (tm < 0. ? tp : tm) / a;
-        if (t * sqa < dist) {
+        float t = (tm < 0. ? tp : tm) / a * sqa;
+        if (t < dist) {
             hitVoid = false;
-            dist = t * sqa;
+            dist = t;
             newPos = pos + dir * (t - 0.01);
             norm = (newPos - spheres[s]) / radii[s];
             newDir = dir - 2. * dot(dir, norm) * norm;

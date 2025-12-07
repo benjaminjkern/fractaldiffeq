@@ -9,10 +9,8 @@ uniform vec3 colors[NUM_SPHERES];
 uniform vec3 camPos;
 uniform vec3 camZ;
 
-float PHI = 1.61803398874989484820459;  // Φ = Golden Ratio
-
-float rand(in vec3 x, in float seed){
-    return fract(tan(distance(x*PHI, x)*seed)*x.x) * 2. - 1.;
+float rand(vec3 co){
+    return fract(sin(dot(co, vec3(12.9898, 78.233, -1.25851))) * 43758.5453) * 2. - 1.;
 }
 
 
@@ -23,7 +21,7 @@ void getColor(in vec3 pos, in vec3 dir, in int bounceNum, out vec3 color, out ve
     float a = dot(dir, dir);
     float sqa = sqrt(a);
 
-    vec3 scatter = vec3(rand(pos + dir, 1.), rand(pos + dir, 2.), rand(pos + dir, 3.));
+    vec3 scatter = vec3(rand(pos + dir), rand(pos + dir * 2.), rand(pos + dir * 3.));
     scatter = scatter / sqrt(dot(scatter, scatter)) * 0.1;
 
     vec3 norm;

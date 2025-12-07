@@ -9,6 +9,12 @@ uniform vec3 colors[NUM_SPHERES];
 uniform vec3 camPos;
 uniform vec3 camZ;
 
+float PHI = 1.61803398874989484820459;  // Φ = Golden Ratio
+
+float rand(in vec3 x, in float seed){
+    return fract(tan(distance(x*PHI, x)*seed)*x.x) * 2. - 1.;
+}
+
 
 void getColor(in vec3 pos, in vec3 dir, in int bounceNum, out vec3 color, out vec3 newPos, out vec3 newDir, out bool hitVoid, out float match) {
     float dist = 1e20;
@@ -16,6 +22,9 @@ void getColor(in vec3 pos, in vec3 dir, in int bounceNum, out vec3 color, out ve
 
     float a = dot(dir, dir);
     float sqa = sqrt(a);
+
+    vec3 scatter = vec3(rand(pos + dir, 1.), rand(pos + dir, 2.), rand(pos + dir, 3.));
+    scatter = scatter / sqrt(dot(scatter, scatter)) * 0.1;
 
     vec3 norm;
     hitVoid = true;
@@ -47,13 +56,14 @@ void getColor(in vec3 pos, in vec3 dir, in int bounceNum, out vec3 color, out ve
             newPos = pos + dir * (dist / sqa - 0.01);
             norm = (newPos - spheres[s]) / radii[s];
             hitColor = colors[s];
+            // scatter = vec3(0., 0., 0.);
         }
     }
     match = -dot(dir, norm) / sqa;
     if (hitVoid) match = 1.;
     color = hitColor;
     newPos = pos + dir * (dist / sqa - 0.01);
-    newDir = dir + 2. * match * sqa * norm;
+    newDir = dir + 2. * match * sqa * norm + scatter;
 }
 
 void main() {
@@ -77,9 +87,9 @@ void main() {
     float match;
 
     bool hitVoid = false;
-    for (int runs = 0; runs < 5; runs++) {
+    for (int runs = 0; runs < 10; runs++) {
         getColor(pos, dir, runs, newColor, pos, dir, hitVoid, match);
-        color = (color * sum + newColor) / float(sum + match);
+        color = (color * float(runs) + newColor) / float(runs + 1);
         if (hitVoid) break;
         sum += match;
     }

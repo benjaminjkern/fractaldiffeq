@@ -95,7 +95,7 @@ const checkAllSpheresCollisions = () => {
                 const planeDiff = subVec(plane.pos, sphere.pos);
                 const vNorm = dotVec(plane.norm, sphere.v);
                 const t = (dotVec(planeDiff, plane.norm) / vNorm) * speed;
-                if (t >= 0 && t < 1) {
+                if (t >= sphere.t && t < 1) {
                     potentialCollisions.push({
                         t,
                         spheres: [sphere],
@@ -127,7 +127,7 @@ const checkAllSpheresCollisions = () => {
 
                 if (disc < 0) continue;
                 const t = (-b - Math.sqrt(disc)) / 2 / a;
-                if (t < 0 || t >= 1) continue;
+                if (t < sphere1.t || t < sphere2.t || t >= 1) continue;
 
                 const norm = normalizeVec(
                     subVec(
@@ -192,7 +192,10 @@ const update = () => {
     for (const sphere of _root.spheres) {
         // gravity
         sphere.v = addVec(sphere.v, [0, 0, -0.001]);
+        sphere.v = constMultVec(0.999, sphere.v);
     }
+    _root.camPos = _root.spheres[0].pos;
+    _root.spheres[0].v = [0, 0, 0];
     checkAllSpheresCollisions();
 
     const camX = normalizeVec(crossVec(_root.camZ, [0, 0, 1]));
@@ -218,16 +221,16 @@ const update = () => {
             constMultVec(_root.speed, camX)
         );
 
-    // if (_root.keysdown[" "])
-    //     _root.spheres[0].pos = addVec(
-    //         _root.spheres[0].pos,
-    //         constMultVec(_root.speed, [0, 0, 1])
-    //     );
-    // if (_root.keysdown.shift)
-    //     _root.spheres[0].pos = addVec(
-    //         _root.spheres[0].pos,
-    //         constMultVec(-_root.speed, [0, 0, 1])
-    //     );
+    if (_root.keysdown[" "])
+        _root.spheres[0].pos = addVec(
+            _root.spheres[0].pos,
+            constMultVec(_root.speed, [0, 0, 1])
+        );
+    if (_root.keysdown.shift)
+        _root.spheres[0].pos = addVec(
+            _root.spheres[0].pos,
+            constMultVec(-_root.speed, [0, 0, 1])
+        );
     if (_root.keysdown.e) {
         let furthestSphere = [null, null];
         for (const sphere of _root.spheres) {
@@ -257,7 +260,6 @@ const update = () => {
             furthestSphere[1].v = constMultVec(0.1, _root.camZ);
         }
     }
-    _root.camPos = _root.spheres[0].pos;
 };
 const updatePosition = (event) => {
     const movementX =
@@ -287,7 +289,7 @@ const lockChangeAlert = () => {
 document.addEventListener("pointerlockchange", lockChangeAlert, false);
 
 const randomSphere = () => {
-    const radius = Math.random() * 0.7 + 0.1;
+    const radius = Math.random() * 0.1 + 0.5;
     return {
         pos: addVec(
             Array(3)

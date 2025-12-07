@@ -1,6 +1,7 @@
 import WebGLShaderRenderer from "./webgl.js";
 
 const _root = {
+    numSpheres: 100,
     planes: [
         { pos: [0, 0, 0], norm: [0, 0, 1] },
         { pos: [10, 0, 0], norm: [1, 0, 0] },
@@ -64,7 +65,10 @@ const sendUniforms = (gl, shaderProgram) => {
 };
 
 const init = () => {
-    _root.spheres = Array(100).fill().map(randomSphere);
+    _root.spheres = Array(_root.numSpheres)
+        .fill()
+        .map(randomSphere)
+        .map((sphere, id) => ({ ...sphere, id }));
     _root.spheres;
     _root.camPos = [20, 0, 20];
     _root.camZ = normalizeVec([-1, 0, -0.5]);
@@ -79,30 +83,33 @@ const checkAllSpheresCollisions = () => {
         sphere.checked = false;
     }
 
-    const potentialCollisions = [];
+    let potentialCollisions = [];
 
-    // Just so it doesn't get stuck
-    let loops = 500;
-
-    while (loops > 0) {
-        loops--;
+    while (true) {
         for (const sphere of _root.spheres) {
             if (sphere.checked) continue;
 
-            const speed = Math.sqrt(dotVec(sphere.v, sphere.v));
-
             for (const plane of _root.planes) {
-                const planeDiff = subVec(plane.pos, sphere.pos);
-                const vNorm = dotVec(plane.norm, sphere.v);
-                const t = (dotVec(planeDiff, plane.norm) / vNorm) * speed;
-                if (t >= sphere.t && t < 1) {
-                    potentialCollisions.push({
-                        t,
-                        spheres: [sphere],
-                        impulses: [
-                            constMultVec(-2 * sphere.mass * vNorm, plane.norm),
-                        ],
-                    });
+                for (let i = -1; i <= 1; i += 2) {
+                    const effectivePlanePos = addVec(
+                        plane.pos,
+                        constMultVec(i * sphere.radius, plane.norm)
+                    );
+                    const planeDiff = subVec(effectivePlanePos, sphere.pos);
+                    const vNorm = dotVec(plane.norm, sphere.v);
+                    const t = dotVec(planeDiff, plane.norm) / vNorm;
+                    if (t >= sphere.t && t < 1) {
+                        potentialCollisions.push({
+                            t,
+                            spheres: [sphere],
+                            impulses: [
+                                constMultVec(
+                                    -2 * sphere.mass * vNorm,
+                                    plane.norm
+                                ),
+                            ],
+                        });
+                    }
                 }
             }
         }
@@ -169,7 +176,7 @@ const checkAllSpheresCollisions = () => {
         for (const [i, sphere] of firstPotentialCollision.spheres.entries()) {
             sphere.pos = addVec(
                 sphere.pos,
-                constMultVec(firstPotentialCollision.t - 0.01, sphere.v)
+                constMultVec(firstPotentialCollision.t, sphere.v)
             );
             sphere.v = addVec(
                 sphere.v,
@@ -181,6 +188,14 @@ const checkAllSpheresCollisions = () => {
             sphere.t = firstPotentialCollision.t;
             sphere.checked = false;
         }
+        potentialCollisions = potentialCollisions.filter((collision) => {
+            return collision.spheres.every(
+                (collSphere) =>
+                    !firstPotentialCollision.spheres.some(
+                        (sphere) => sphere.id === collSphere.id
+                    )
+            );
+        });
     }
 
     for (const sphere of _root.spheres) {
@@ -192,7 +207,7 @@ const update = () => {
     for (const sphere of _root.spheres) {
         // gravity
         sphere.v = addVec(sphere.v, [0, 0, -0.001]);
-        sphere.v = constMultVec(0.999, sphere.v);
+        // sphere.v = constMultVec(0.999, sphere.v);
     }
     _root.camPos = _root.spheres[0].pos;
     _root.spheres[0].v = [0, 0, 0];

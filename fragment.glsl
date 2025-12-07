@@ -21,8 +21,10 @@ void getColor(in vec3 pos, in vec3 dir, in int bounceNum, out vec3 color, out ve
     float a = dot(dir, dir);
     float sqa = sqrt(a);
 
+    float scatterAmount = 0.;
+
     vec3 scatter = vec3(rand(pos + dir), rand(pos + dir * 2.), rand(pos + dir * 3.));
-    scatter = scatter / sqrt(dot(scatter, scatter)) * 0.1;
+    scatter = scatter / sqrt(dot(scatter, scatter));
 
     vec3 norm;
     hitVoid = true;
@@ -34,6 +36,7 @@ void getColor(in vec3 pos, in vec3 dir, in int bounceNum, out vec3 color, out ve
         dist = tPlane;
         norm = vec3(0., 0., 1.);
         hitColor = vec3(0., 0., 0.);
+        scatterAmount = 0.01;
     }
 
     for (int s = 0; s < NUM_SPHERES; s++) {
@@ -54,14 +57,38 @@ void getColor(in vec3 pos, in vec3 dir, in int bounceNum, out vec3 color, out ve
             newPos = pos + dir * (dist / sqa - 0.01);
             norm = (newPos - spheres[s]) / radii[s];
             hitColor = colors[s];
-            // scatter = vec3(0., 0., 0.);
+            scatterAmount = 0.00;
         }
     }
     match = -dot(dir, norm) / sqa;
     if (hitVoid) match = 1.;
     color = hitColor;
     newPos = pos + dir * (dist / sqa - 0.01);
-    newDir = dir + 2. * match * sqa * norm + scatter;
+    newDir = dir + 2. * match * sqa * norm + scatter * scatterAmount;
+}
+
+vec3 getSample(vec3 pos, vec3 dir, int sample) {
+    vec3 color;
+    vec3 newColor;
+
+    float sum = 0.;
+    float match;
+    bool hitVoid = false;
+
+    vec3 scatter = vec3(rand(pos + dir * float(sample)), rand(pos + dir * float(sample) * 2.), rand(pos + dir * float(sample) * 3.));
+    scatter = scatter / sqrt(dot(scatter, scatter)) * 0.001;
+
+    vec3 samplePos = pos;
+    vec3 sampleDir = dir + scatter;
+
+    for (int rays = 0; rays < 10; rays++) {
+        getColor(samplePos, sampleDir, rays, newColor, samplePos, sampleDir, hitVoid, match);
+        color = (color * float(rays) + newColor) / float(rays + 1);
+        if (hitVoid) break;
+        sum += match;
+    }
+
+    return color;
 }
 
 void main() {
@@ -77,20 +104,13 @@ void main() {
 
     vec3 pos = camPos;
     vec3 dir = adjustedScreenPos.x * camX + adjustedScreenPos.y * camY + camZ;
-    vec3 newColor;
+
+    const int SAMPLES = 1;
+
     vec3 color;
-    int runs = 0;
-
-    float sum = 0.;
-    float match;
-
-    bool hitVoid = false;
-    for (int runs = 0; runs < 10; runs++) {
-        getColor(pos, dir, runs, newColor, pos, dir, hitVoid, match);
-        color = (color * float(runs) + newColor) / float(runs + 1);
-        if (hitVoid) break;
-        sum += match;
+    for (int sample = 0; sample < SAMPLES; sample++) {
+        color += getSample(pos, dir, sample);
     }
 
-    gl_FragColor = vec4(color, 1.0);
+    gl_FragColor = vec4(color / float(SAMPLES), 1.0);
 }

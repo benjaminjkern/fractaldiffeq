@@ -1,7 +1,7 @@
 import WebGLShaderRenderer from "./webgl.js";
 
 const _root = {
-    numSpheres: 100,
+    numSpheres: 5,
     planes: [
         { pos: [0, 0, 0], norm: [0, 0, 1] },
         { pos: [10, 0, 0], norm: [1, 0, 0] },
@@ -176,7 +176,7 @@ const checkAllSpheresCollisions = () => {
         for (const [i, sphere] of firstPotentialCollision.spheres.entries()) {
             sphere.pos = addVec(
                 sphere.pos,
-                constMultVec(firstPotentialCollision.t, sphere.v)
+                constMultVec(firstPotentialCollision.t - sphere.t, sphere.v)
             );
             sphere.v = addVec(
                 sphere.v,
@@ -207,7 +207,7 @@ const update = () => {
     for (const sphere of _root.spheres) {
         // gravity
         sphere.v = addVec(sphere.v, [0, 0, -0.001]);
-        // sphere.v = constMultVec(0.999, sphere.v);
+        sphere.v = constMultVec(0.999, sphere.v);
     }
     _root.camPos = _root.spheres[0].pos;
     _root.spheres[0].v = [0, 0, 0];
@@ -314,7 +314,7 @@ const randomSphere = () => {
         ),
         v: Array(3)
             .fill()
-            .map(() => (Math.random() * 2 - 1) * 0.01),
+            .map(() => (Math.random() * 2 - 1) * 0.1),
         radius,
         mass: 0.1 * radius ** 3,
         color: randomColor(),
@@ -324,10 +324,14 @@ const randomSphere = () => {
 window.onkeydown = (e) => {
     if (["a", "s", "d", "w", " ", "shift", "e"].includes(e.key.toLowerCase()))
         _root.keysdown[e.key.toLowerCase()] = true;
+
+    if (e.key === "Control") _root.speed *= 10;
 };
 window.onkeyup = (e) => {
     if (["a", "s", "d", "w", " ", "shift", "e"].includes(e.key.toLowerCase()))
         _root.keysdown[e.key.toLowerCase()] = false;
+
+    if (e.key === "Control") _root.speed /= 10;
 };
 
 /****

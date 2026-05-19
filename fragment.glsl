@@ -23,7 +23,7 @@ void getColor(in vec3 pos, in vec3 dir, in int bounceNum, out vec3 color, out ve
 
     float scatterAmount = 0.;
 
-    vec3 scatter = vec3(rand(pos + dir), rand(pos + dir * 2.), rand(pos + dir * 3.));
+    vec3 scatter = vec3(rand(pos + dir * float(bounceNum + 1)), rand(pos + dir * 2. * float(bounceNum + 1)), rand(pos + dir * 3. * float(bounceNum + 1)));
     scatter = scatter / sqrt(dot(scatter, scatter));
 
     vec3 norm;
@@ -36,7 +36,7 @@ void getColor(in vec3 pos, in vec3 dir, in int bounceNum, out vec3 color, out ve
         dist = tPlane;
         norm = vec3(0., 0., 1.);
         hitColor = vec3(0., 0., 0.);
-        scatterAmount = 0.01;
+        scatterAmount = 0.1;
     }
 
     for (int s = 0; s < NUM_SPHERES; s++) {
